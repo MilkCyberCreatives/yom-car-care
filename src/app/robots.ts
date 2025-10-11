@@ -1,10 +1,15 @@
-import type { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next'
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL || 'https://yomcarcare.com'
 
 export default function robots(): MetadataRoute.Robots {
-  const host = 'https://yomcarcare.com'
   return {
-    rules: [{ userAgent: '*', allow: '/' }],
-    sitemap: `${host}/sitemap.xml`,
-    host
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: ['/api/'],
+    },
+    sitemap: `${BASE}/sitemap.xml`,
+    host: BASE,
   }
 }

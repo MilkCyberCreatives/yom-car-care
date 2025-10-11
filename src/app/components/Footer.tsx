@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Phone, Mail } from 'lucide-react'
 import { useI18n } from '@/hooks/useI18n'
 
 export default function Footer() {
@@ -8,16 +9,37 @@ export default function Footer() {
 
   return (
     <footer className="mt-16 border-t border-white/10 bg-zinc-950 text-sm">
-      <div className="container-px py-10 grid gap-8 md:grid-cols-4">
+      <div className="container-px py-10 grid gap-10 md:grid-cols-4">
+        {/* Brand & contacts */}
         <div>
           <div className="text-lg font-semibold">YOM Car Care</div>
           <p className="mt-2 text-white/70">{t.common.cash_on_delivery}</p>
-          <div className="mt-4 space-x-2">
-            <a href="tel:+243848994045" className="btn-ghost">{t.common.phone_label}: +243 84 899 4045</a>
-            <a href="mailto:info@yomcarcare.com" className="btn-ghost">{t.common.email_label}: info@yomcarcare.com</a>
+
+          {/* Buttons row: stacked on mobile, inline from md+ */}
+          <div className="mt-4 flex flex-col gap-3 md:flex-row">
+            <a
+              href={`tel:${t.common.phone.replace(/\s+/g, '')}`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 hover:bg-white/10 transition"
+              aria-label={`Call ${t.common.phone}`}
+              title={`Call ${t.common.phone}`}
+            >
+              <Phone size={16} />
+              <span className="font-medium">{t.common.phone_label}: {t.common.phone}</span>
+            </a>
+
+            <a
+              href={`mailto:${t.common.email}`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 hover:bg-white/10 transition"
+              aria-label={`Email ${t.common.email}`}
+              title={`Email ${t.common.email}`}
+            >
+              <Mail size={16} />
+              <span className="font-medium">{t.common.email_label}: {t.common.email}</span>
+            </a>
           </div>
         </div>
 
+        {/* Address */}
         <div>
           <h4 className="font-semibold">{t.footer.address}</h4>
           <ul className="mt-3 space-y-1 text-white/80">
@@ -27,6 +49,7 @@ export default function Footer() {
           </ul>
         </div>
 
+        {/* Products */}
         <div>
           <h4 className="font-semibold">{t.footer.products}</h4>
           <ul className="mt-3 space-y-1">
@@ -38,6 +61,7 @@ export default function Footer() {
           </ul>
         </div>
 
+        {/* Info */}
         <div>
           <h4 className="font-semibold">{t.footer.info}</h4>
           <ul className="mt-3 space-y-1">
@@ -51,8 +75,23 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-4 text-center text-white/60">
-        © {new Date().getFullYear()} YOM Car Care. All rights reserved.
+      {/* Bottom bar */}
+      <div className="border-t border-white/10 py-4 text-center text-white/70">
+        <div className="container-px flex flex-col items-center gap-1 md:flex-row md:justify-between">
+          <span>© {new Date().getFullYear()} YOM Car Care. All rights reserved.</span>
+          <span>
+            Designed &amp; developed by{' '}
+            <a
+              href="https://milkcybercreatives.co.za/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-white/30 hover:decoration-white"
+            >
+              Milk Cyber Creatives
+            </a>
+            .
+          </span>
+        </div>
       </div>
     </footer>
   )

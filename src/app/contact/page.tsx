@@ -1,41 +1,33 @@
-import ContactForm from '../components/ContactForm'
+import ContactForm from './ContactForm'
 
 export const metadata = {
-  title: 'Contact — YOM Car Care',
-  description: 'Contact YOM Car Care in Lubumbashi for product enquiries and orders. Cash on Delivery.',
-  alternates: { canonical: '/contact' },
+  title: 'Contact • YOM Car Care',
+  description: 'Get in touch with YOM Car Care in Lubumbashi.',
 }
 
-export default function ContactPage(){
+export default function ContactPage() {
   return (
     <main className="container-px py-10">
-      <h1 className="text-3xl font-semibold">Contact</h1>
+      <h1 className="text-2xl md:text-3xl font-semibold">Contact us</h1>
+      <p className="mt-2 text-white/70">
+        We usually reply within the same day. You can also call +243 84 899 4045 or email info@yomcarcare.com.
+      </p>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        {/* Map */}
-        <div className="rounded-2xl overflow-hidden border border-white/10">
-          <iframe
-            title="YOM Car Care Location"
-            src="https://www.google.com/maps?q=538%20Avenue%20Kipopo,%20Lubumbashi&output=embed"
-            width="100%"
-            height="380"
-            loading="lazy"
-          />
+      <div className="mt-6 grid gap-6 md:grid-cols-5">
+        <div className="md:col-span-3 rounded-xl border border-white/10 bg-zinc-900/40 p-5">
+          <ContactForm />
         </div>
 
-        {/* Details + Form */}
-        <div>
-          <ul className="space-y-1 text-white/80">
-            <li><strong>Address:</strong> 538 Avenue Kipopo, Golf Malela, Lubumbashi</li>
-            <li><strong>Tel:</strong> +243 84 899 4045</li>
-            <li><strong>Email:</strong> info@yomcarcare.com</li>
-            <li><strong>Languages:</strong> English & French</li>
-          </ul>
-
-          <div className="mt-6">
-            <ContactForm />
+        <aside className="md:col-span-2 rounded-xl border border-white/10 bg-zinc-900/40 p-5">
+          <h2 className="font-semibold">Our location</h2>
+          <p className="mt-2 text-white/80">
+            538 Avenue Kipopo, Golf Malela, Lubumbashi, DR Congo
+          </p>
+          <div className="mt-4 space-y-2">
+            <a className="btn-ghost w-full justify-center" href="tel:+243848994045">Call: +243 84 899 4045</a>
+            <a className="btn-ghost w-full justify-center" href="mailto:info@yomcarcare.com">Email: info@yomcarcare.com</a>
           </div>
-        </div>
+        </aside>
       </div>
     </main>
   )

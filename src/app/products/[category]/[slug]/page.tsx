@@ -1,93 +1,154 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import type { Metadata } from 'next'
 import Script from 'next/script'
-import { products } from '@/data/products'
-import PdpCtas from '../../../components/PdpCtas'
-import ImageGallery from '../../../components/ImageGallery'
+import { products, type ProductData } from '@/data/products'
+import ProductCard from '../../../components/ProductCard'
 
 type Params = { category: string; slug: string }
 
-export function generateMetadata({ params }: { params: Params }): Metadata {
-  const item = products.find(p => p.slug === params.slug && p.category === params.category)
-  if (!item) return { title: 'Product — YOM Car Care' }
+export async function generateStaticParams() {
+  return products.map(p => ({ category: p.category, slug: p.slug }))
+}
+
+export function generateMetadata({ params }: { params: Params }) {
+  const p = products.find(x => x.slug === params.slug && x.category === params.category)
+  if (!p) return {}
   return {
-    title: `${item.name} — YOM Car Care`,
-    description: `${item.name} available in Lubumbashi. Cash on Delivery.`,
-    alternates: { canonical: `/products/${item.category}/${item.slug}` },
-    openGraph: {
-      title: `${item.name} — YOM Car Care`,
-      description: `${item.name} available in Lubumbashi. Cash on Delivery.`,
-      images: (item.images?.length ? item.images : item.img ? [item.img] : undefined)?.map(u => ({
-        url: u, width: 1200, height: 900, alt: item.name
-      })),
-    }
+    title: `${p.name} • YOM Car Care`,
+    description: `${p.name}${p.size ? ` — ${p.size}` : ''} • Available in Lubumbashi. Cash on Delivery.`,
   }
 }
 
-export default function ProductPage({ params }: { params: Params }) {
-  const item = products.find(p => p.slug === params.slug && p.category === params.category)
-  if (!item) return notFound()
+export const dynamicParams = false
 
-  const catTitle = params.category.replace(/-/g, ' ').replace(/\b\w/g, s => s.toUpperCase())
-  const waText = encodeURIComponent(`Hello YOM Car Care, I'm interested in: ${item.name}`)
+export default function ProductDetailPage({ params }: { params: Params }) {
+  const p = products.find(x => x.slug === params.slug && x.category === params.category)
+  if (!p) return notFound()
 
-  const productJsonLd = {
+  const gallery = p.images?.length ? p.images : (p.img ? [p.img] : [])
+  const related = products.filter(x => x.category === p.category && x.slug !== p.slug).slice(0, 4)
+
+  // Product JSON-LD
+  const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: item.name,
-    category: catTitle,
-    image: item.images?.length ? item.images : (item.img ? [item.img] : undefined),
+    name: p.name,
+    image: gallery.length ? gallery : undefined,
+    description: p.description || `${p.name}${p.size ? ` — ${p.size}` : ''}`,
+    sku: p.sku || p.slug,
     brand: { '@type': 'Brand', name: 'YOM Car Care' },
     offers: {
       '@type': 'Offer',
-      priceCurrency: item.currency || 'USD',
-      price: item.price != null ? item.price : undefined,
-      availability: 'https://schema.org/InStoreOnly',
-      url: `https://yomcarcare.com/products/${item.category}/${item.slug}`
-    }
+      availability: 'https://schema.org/InStock',
+      priceCurrency: p.currency || 'USD',
+      price: p.price ?? 0,
+      seller: { '@type': 'Organization', name: 'YOM Car Care' },
+      url: `https://yomcarcare.com/products/${p.category}/${p.slug}`,
+    },
   }
 
   return (
     <main className="container-px py-10">
-      <Script id="jsonld-product" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+      {/* JSON-LD */}
+      <Script id="product-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <nav className="text-sm text-white/60">
-        <Link href="/">Home</Link> <span>/</span>{' '}
-        <Link href="/products">Products</Link> <span>/</span>{' '}
-        <Link href={`/products/${item.category}`}>{catTitle}</Link> <span>/</span>{' '}
-        <span className="text-white">{item.name}</span>
-      </nav>
-
-      <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        {/* Gallery */}
-        <ImageGallery
-          images={item.images?.length ? item.images : (item.img ? [item.img] : [])}
-          alt={item.name}
-        />
-
-        {/* Details */}
+      {/* Title & CTAs */}
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold">{item.name}</h1>
-          <div className="mt-2 text-white/80">
-            {item.size ? <span>Size: {item.size}</span> : null}
-            {item.price != null && (
-              <span className="ml-3 inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-sm">
-                Price: {item.currency || 'USD'} {item.price.toFixed(2)}
-              </span>
-            )}
-          </div>
-          <p className="mt-4 text-white/80">
-            High-quality {catTitle.toLowerCase()} product. Cash on Delivery available in Lubumbashi.
-          </p>
-
-          <PdpCtas itemName={item.name} category={item.category} waText={waText} />
-
-          <div className="mt-6">
-            <Link href={`/products/${item.category}`} className="btn-ghost">Back to {catTitle}</Link>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-semibold">{p.name}</h1>
+          {p.size ? <p className="text-white/60 mt-1">{p.size}</p> : null}
+        </div>
+        <div className="flex gap-2 mt-2">
+          <a href="tel:+243848994045" className="btn-ghost">Call</a>
+          <a href="mailto:info@yomcarcare.com" className="btn-ghost">Email</a>
+          <a
+            className="btn-primary"
+            href={`https://wa.me/243848994045?text=${encodeURIComponent(`Hi YOM, I'm interested in ${p.name}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WhatsApp
+          </a>
         </div>
       </div>
+
+      {/* Gallery + details */}
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <div className="space-y-3">
+          {gallery.length ? (
+            <>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-zinc-900/40">
+                <Image
+                  src={gallery[0]}
+                  alt={p.name}
+                  fill
+                  sizes="(max-width:768px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
+              {gallery.length > 1 ? (
+                <div className="grid grid-cols-4 gap-3">
+                  {gallery.slice(1, 5).map((g, i) => (
+                    <div key={i} className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-zinc-900/40">
+                      <Image src={g} alt={`${p.name} ${i + 2}`} fill sizes="25vw" className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="grid aspect-[4/3] place-items-center rounded-xl border border-white/10 bg-zinc-900/40 text-white/50">
+              Image coming soon
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-5">
+          <h2 className="font-semibold text-lg">Product details</h2>
+          <ul className="mt-3 space-y-2 text-white/80">
+            <li><strong>Category:</strong> <span className="capitalize">{p.category.replace('-', ' ')}</span></li>
+            {p.size ? <li><strong>Size:</strong> {p.size}</li> : null}
+            {p.badges?.length ? <li><strong>Tags:</strong> {p.badges.join(', ')}</li> : null}
+          </ul>
+
+          {p.price != null ? (
+            <div className="mt-5 text-xl font-semibold">
+              {p.currency || 'USD'} {p.price.toFixed(2)}
+            </div>
+          ) : null}
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            <a href="tel:+243848994045" className="btn-ghost">Call to Order</a>
+            <a href="mailto:info@yomcarcare.com" className="btn-ghost">Email Us</a>
+            <a
+              className="btn-primary"
+              href={`https://wa.me/243848994045?text=${encodeURIComponent(`Hi YOM, I'm interested in ${p.name}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp Order
+            </a>
+          </div>
+
+          <p className="mt-6 text-white/70 text-sm">
+            * Cash on Delivery in Lubumbashi. No online payments.
+          </p>
+        </div>
+      </div>
+
+      {/* Related */}
+      {related.length ? (
+        <section className="mt-10">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Related products</h3>
+            <Link href={`/products/${p.category}`} className="text-sm hover:underline">View all</Link>
+          </div>
+          <div className="mt-5 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {related.map(r => <ProductCard key={r.slug} p={r as ProductData} />)}
+          </div>
+        </section>
+      ) : null}
     </main>
   )
 }
