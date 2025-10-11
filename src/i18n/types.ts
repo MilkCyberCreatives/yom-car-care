@@ -10,6 +10,11 @@ export type Dict = {
     call_now: string
     whatsapp_us: string
     cash_on_delivery: string
+
+    // 👇 NEW: used by MainHeader nav
+    products: string
+    about: string
+    contact: string
   }
   hero: {
     /** Fallback (single string) */
@@ -21,7 +26,7 @@ export type Dict = {
     subtitle: string
     cta_primary: string
     cta_secondary: string
-    /** <-- NEW: small line under the hero for language hint */
+    /** Small line under hero for language hint */
     french_hint: string
   }
   footer: {

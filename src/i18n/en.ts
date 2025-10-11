@@ -12,6 +12,11 @@ export const en: Dict = {
     call_now: 'Call Now',
     whatsapp_us: 'WhatsApp Us',
     cash_on_delivery: 'Cash on Delivery',
+
+    // nav labels
+    products: 'Products',
+    about: 'About Us',
+    contact: 'Contact',
   },
   hero: {
     title: 'Premium car care in Lubumbashi',

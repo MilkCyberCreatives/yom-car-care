@@ -12,6 +12,11 @@ export const fr: Dict = {
     call_now: 'Appeler maintenant',
     whatsapp_us: 'WhatsApp',
     cash_on_delivery: 'Paiement à la livraison',
+
+    // nav labels
+    products: 'Produits',
+    about: 'À propos',
+    contact: 'Contact',
   },
   hero: {
     title: 'Entretien auto premium à Lubumbashi',
