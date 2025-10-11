@@ -6,8 +6,12 @@ export const fr: Dict = {
     address_line1: '538 Avenue Kipopo',
     address_line2: 'Golf Malela',
     address_city: 'Lubumbashi',
+
     phone_label: 'Appeler',
     email_label: 'Email',
+    phone: '+243 84 899 4045',        // ← ajouté
+    email: 'info@yomcarcare.com',     // ← ajouté
+
     browse_products: 'Voir les produits',
     call_now: 'Appeler maintenant',
     whatsapp_us: 'WhatsApp',
@@ -17,7 +21,7 @@ export const fr: Dict = {
     about: 'À propos',
     contact: 'Contact',
     categories: 'Catégories',
-    browse: 'Parcourir',           // ⬅️ added
+    browse: 'Parcourir',
   },
   hero: {
     title: 'Entretien auto premium à Lubumbashi',

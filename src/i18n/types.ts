@@ -4,18 +4,25 @@ export type Dict = {
     address_line1: string
     address_line2: string
     address_city: string
+
+    // contact labels + values
     phone_label: string
     email_label: string
+    phone: string            // ← added (e.g., “+243 84 899 4045”)
+    email: string            // ← added (e.g., “info@yomcarcare.com”)
+
+    // CTAs
     browse_products: string
     call_now: string
     whatsapp_us: string
     cash_on_delivery: string
 
+    // nav
     products: string
     about: string
     contact: string
     categories: string
-    browse: string              // ⬅️ added short label
+    browse: string
   }
   hero: {
     title: string
