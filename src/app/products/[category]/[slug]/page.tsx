@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Script from 'next/script'
 import { products } from '../../../data/products'
+import PdpCtas from '../../../components/PdpCtas'
 
 type Params = { category: string; slug: string }
 
@@ -39,7 +40,6 @@ export default function ProductPage({ params }: { params: Params }) {
     offers: {
       '@type': 'Offer',
       priceCurrency: 'USD',
-      // no price yet; mark as "InStoreOnly" / COD
       availability: 'https://schema.org/InStoreOnly',
       url: `https://yomcarcare.com/products/${item.category}/${item.slug}`
     }
@@ -47,11 +47,7 @@ export default function ProductPage({ params }: { params: Params }) {
 
   return (
     <main className="container-px py-10">
-      <Script
-        id="jsonld-product"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
-      />
+      <Script id="jsonld-product" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
 
       <nav className="text-sm text-white/60">
         <Link href="/">Home</Link> <span>/</span>{' '}
@@ -61,7 +57,6 @@ export default function ProductPage({ params }: { params: Params }) {
       </nav>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        {/* Image */}
         <div className="relative aspect-[4/3] rounded-2xl border border-white/10 overflow-hidden">
           {item.img ? (
             <Image
@@ -77,7 +72,6 @@ export default function ProductPage({ params }: { params: Params }) {
           )}
         </div>
 
-        {/* Details */}
         <div>
           <h1 className="text-3xl font-semibold">{item.name}</h1>
           {item.size && <p className="mt-2 text-white/70">Size: {item.size}</p>}
@@ -85,17 +79,7 @@ export default function ProductPage({ params }: { params: Params }) {
             High-quality {catTitle.toLowerCase()} product. Cash on Delivery available in Lubumbashi.
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a
-              href={`https://wa.me/243848994045?text=${waText}`}
-              target="_blank"
-              className="btn-primary"
-              rel="noopener noreferrer"
-            >
-              WhatsApp Enquiry
-            </a>
-            <a href="tel:+243848994045" className="btn-ghost">Call to Order</a>
-          </div>
+          <PdpCtas itemName={item.name} category={item.category} waText={waText} />
 
           <div className="mt-6">
             <Link href={`/products/${item.category}`} className="btn-ghost">Back to {catTitle}</Link>
