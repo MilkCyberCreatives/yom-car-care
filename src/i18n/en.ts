@@ -15,12 +15,15 @@ export const en: Dict = {
   },
   hero: {
     title: 'Premium car care in Lubumbashi',
+    title_1: 'Premium car care for a',
+    title_highlight: 'showroom shine',
+    title_2: 'in Lubumbashi',
     subtitle: 'Exterior, interior, detailing & accessories. Pay on delivery.',
     cta_primary: 'Shop Products',
     cta_secondary: 'Contact Us',
   },
   footer: {
-    address: 'Address',        // <-- added
+    address: 'Address',
     products: 'Products',
     info: 'Info',
     faq: 'FAQ',

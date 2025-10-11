@@ -14,13 +14,16 @@ export const fr: Dict = {
     cash_on_delivery: 'Paiement à la livraison',
   },
   hero: {
-    title: 'Produits d’entretien auto à Lubumbashi',
+    title: 'Entretien auto premium à Lubumbashi',
+    title_1: 'Entretien auto premium pour un',
+    title_highlight: 'éclat de showroom',
+    title_2: 'à Lubumbashi',
     subtitle: 'Extérieur, intérieur, detailing & accessoires. Paiement à la livraison.',
     cta_primary: 'Voir les produits',
     cta_secondary: 'Nous contacter',
   },
   footer: {
-    address: 'Adresse',        // <-- added
+    address: 'Adresse',
     products: 'Produits',
     info: 'Infos',
     faq: 'FAQ',
