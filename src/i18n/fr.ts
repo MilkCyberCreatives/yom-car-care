@@ -16,7 +16,8 @@ export const fr: Dict = {
     products: 'Produits',
     about: 'À propos',
     contact: 'Contact',
-    categories: 'Catégories',   // ⬅️ added
+    categories: 'Catégories',
+    browse: 'Parcourir',           // ⬅️ added
   },
   hero: {
     title: 'Entretien auto premium à Lubumbashi',

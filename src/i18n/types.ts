@@ -14,7 +14,8 @@ export type Dict = {
     products: string
     about: string
     contact: string
-    categories: string        // ⬅️ added
+    categories: string
+    browse: string              // ⬅️ added short label
   }
   hero: {
     title: string

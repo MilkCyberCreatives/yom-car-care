@@ -16,7 +16,8 @@ export const en: Dict = {
     products: 'Products',
     about: 'About Us',
     contact: 'Contact',
-    categories: 'Categories',   // ⬅️ added
+    categories: 'Categories',
+    browse: 'Browse',              // ⬅️ added
   },
   hero: {
     title: 'Premium car care in Lubumbashi',
