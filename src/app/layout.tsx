@@ -52,7 +52,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       streetAddress: '538 Avenue Kipopo, Golf Malela',
       addressLocality: 'Lubumbashi',
       addressCountry: 'CD'
-    }
+    },
+    // Approximate coordinates for Lubumbashi (adjust if you have exact store coords)
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: -11.6647,
+      longitude: 27.4794
+    },
+    openingHoursSpecification: [
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '09:00', closes: '18:00' },
+      { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Saturday', opens: '09:00', closes: '14:00' },
+      // Sunday closed
+    ],
+    paymentAccepted: 'Cash'
   }
 
   return (

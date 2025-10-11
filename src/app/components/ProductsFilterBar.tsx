@@ -2,15 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-
-const categories = [
-  { value: '', label: 'All categories' },
-  { value: 'exterior', label: 'Exterior' },
-  { value: 'interior', label: 'Interior' },
-  { value: 'air-fresheners', label: 'Air Fresheners' },
-  { value: 'detailing', label: 'Detailing' },
-  { value: 'accessories', label: 'Accessories' },
-]
+import { useI18n } from '@/hooks/useI18n'
 
 export default function ProductsFilterBar({
   initialQuery,
@@ -21,6 +13,16 @@ export default function ProductsFilterBar({
   initialCategory: string
   initialSort: 'name_asc' | 'name_desc'
 }) {
+  const { t } = useI18n()
+  const categories = [
+    { value: '', label: t ? 'All categories' : 'All categories' },
+    { value: 'exterior', label: t.cats.exterior },
+    { value: 'interior', label: t.cats.interior },
+    { value: 'air-fresheners', label: t.cats.air },
+    { value: 'detailing', label: t.cats.detailing },
+    { value: 'accessories', label: t.cats.accessories },
+  ]
+
   const [q, setQ] = useState(initialQuery)
   const [cat, setCat] = useState(initialCategory)
   const [sort, setSort] = useState<'name_asc' | 'name_desc'>(initialSort)
@@ -29,7 +31,6 @@ export default function ProductsFilterBar({
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  // Build URL with updated params
   const buildUrl = useMemo(() => {
     return (next: Partial<{ q: string; category: string; sort: string; page: string }>) => {
       const params = new URLSearchParams(searchParams?.toString())
@@ -38,7 +39,6 @@ export default function ProductsFilterBar({
         next.category ? params.set('category', next.category) : params.delete('category')
       }
       if (next.sort !== undefined) params.set('sort', next.sort)
-      // reset to page 1 if filters change
       if (next.page !== undefined) params.set('page', next.page)
       else params.delete('page')
       const qs = params.toString()
@@ -46,12 +46,10 @@ export default function ProductsFilterBar({
     }
   }, [pathname, searchParams])
 
-  // Submit handlers
   const apply = () => {
     router.push(buildUrl({ q: q.trim(), category: cat, sort, page: '1' }))
   }
 
-  // Submit on Enter in search box
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && (document.activeElement as HTMLElement)?.id === 'products-q') {
@@ -65,19 +63,17 @@ export default function ProductsFilterBar({
   return (
     <div className="mt-6 rounded-2xl border border-white/10 bg-zinc-900/40 p-4">
       <div className="grid gap-3 md:grid-cols-3">
-        {/* Search */}
         <div className="flex items-center gap-2">
           <input
             id="products-q"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search products…"
+            placeholder="Search products… (EN/FR)"
             className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 outline-none placeholder:text-white/70"
             aria-label="Search products"
           />
         </div>
 
-        {/* Category */}
         <div>
           <select
             value={cat}
@@ -91,7 +87,6 @@ export default function ProductsFilterBar({
           </select>
         </div>
 
-        {/* Sort + Apply */}
         <div className="flex items-center gap-2">
           <select
             value={sort}

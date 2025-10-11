@@ -1,6 +1,3 @@
-// Product data (initial set from client list) + simple image URLs.
-// Images use Unsplash placeholders for now; replace with your own later.
-
 export type Category =
   | 'exterior'
   | 'interior'
@@ -13,13 +10,15 @@ export type ProductData = {
   name: string
   category: Category
   size?: string
-  img?: string
+  img?: string            // primary image (back-compat)
+  images?: string[]       // gallery images (optional)
 }
 
 const U = (q: string) =>
-  `https://images.unsplash.com/photo-1550355291-bbee04a92027?q=80&auto=format&fit=crop&w=1200&h=900&crop=entropy&ixlib=rb-4.0.3&img=${encodeURIComponent(
-    q
-  )}`
+  `https://images.unsplash.com/photo-1550355291-bbee04a92027?q=80&auto=format&fit=crop&w=1200&h=900&crop=entropy&ixlib=rb-4.0.3&img=${encodeURIComponent(q)}`
+
+const U2 = (q: string) =>
+  `https://images.unsplash.com/photo-1542365887-1f7475d0d34a?q=80&auto=format&fit=crop&w=1200&h=900&crop=entropy&ixlib=rb-4.0.3&img=${encodeURIComponent(q)}`
 
 const ext: Category = 'exterior'
 const int: Category = 'interior'
@@ -29,8 +28,22 @@ const acc: Category = 'accessories'
 
 export const products: ProductData[] = [
   // EXTERIOR
-  { slug: 'shield-snow-foam-1l', name: 'Shield Snow Foam 1L', category: ext, size: '1L', img: U('snow-foam') },
-  { slug: 'shield-splash-car-shampoo-500ml', name: 'Shield Splash Car Shampoo 500ml', category: ext, size: '500ml', img: U('shampoo') },
+  {
+    slug: 'shield-snow-foam-1l',
+    name: 'Shield Snow Foam 1L',
+    category: ext,
+    size: '1L',
+    img: U('snow-foam'),
+    images: [U('snow-foam'), U2('prewash'), U('foam-lance')]
+  },
+  {
+    slug: 'shield-splash-car-shampoo-500ml',
+    name: 'Shield Splash Car Shampoo 500ml',
+    category: ext,
+    size: '500ml',
+    img: U('shampoo'),
+    images: [U('shampoo'), U2('wash'), U('rinse')]
+  },
   { slug: 'shield-windscreen-wash-350ml', name: 'Shield Windscreen Wash 350ml', category: ext, size: '350ml', img: U('windscreen') },
   { slug: 'shield-miraplate-liquid-wax-500ml', name: 'Shield Miraplate Liquid Wax 500ml', category: ext, size: '500ml', img: U('wax') },
   { slug: 'shield-tyre-gloss-cleaner-400ml', name: 'Shield Tyre Gloss Cleaner 400ml', category: ext, size: '400ml', img: U('tyre-gloss') },

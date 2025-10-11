@@ -1,3 +1,11 @@
+import ContactForm from '../components/ContactForm'
+
+export const metadata = {
+  title: 'Contact — YOM Car Care',
+  description: 'Contact YOM Car Care in Lubumbashi for product enquiries and orders. Cash on Delivery.',
+  alternates: { canonical: '/contact' },
+}
+
 export default function ContactPage(){
   return (
     <main className="container-px py-10">
@@ -15,24 +23,18 @@ export default function ContactPage(){
           />
         </div>
 
-        {/* Details + Quick form */}
+        {/* Details + Form */}
         <div>
           <ul className="space-y-1 text-white/80">
             <li><strong>Address:</strong> 538 Avenue Kipopo, Golf Malela, Lubumbashi</li>
             <li><strong>Tel:</strong> +243 84 899 4045</li>
             <li><strong>Email:</strong> info@yomcarcare.com</li>
+            <li><strong>Languages:</strong> English & French</li>
           </ul>
 
-          <form className="mt-6 space-y-3" action="mailto:info@yomcarcare.com" method="post" encType="text/plain">
-            <input required name="name" placeholder="Your name" className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 outline-none" />
-            <input required name="email" type="email" placeholder="Your email" className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 outline-none" />
-            <textarea required name="message" placeholder="Your message" rows={5} className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 outline-none" />
-            <button className="btn-primary" type="submit">Send</button>
-          </form>
-
-          <p className="text-xs text-white/50 mt-2">
-            Tip: You can also reach us on WhatsApp: +243 84 899 4045
-          </p>
+          <div className="mt-6">
+            <ContactForm />
+          </div>
         </div>
       </div>
     </main>

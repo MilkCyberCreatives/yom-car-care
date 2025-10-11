@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Script from 'next/script'
-import { products } from '../../../data/products'
+import { products } from '@/data/products'
 import PdpCtas from '../../../components/PdpCtas'
+import ImageGallery from '../../../components/ImageGallery'
 
 type Params = { category: string; slug: string }
 
@@ -18,7 +18,9 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
     openGraph: {
       title: `${item.name} — YOM Car Care`,
       description: `${item.name} available in Lubumbashi. Cash on Delivery.`,
-      images: item.img ? [{ url: item.img, width: 1200, height: 900, alt: item.name }] : undefined,
+      images: (item.images?.length ? item.images : item.img ? [item.img] : undefined)?.map(u => ({
+        url: u, width: 1200, height: 900, alt: item.name
+      })),
     }
   }
 }
@@ -35,11 +37,12 @@ export default function ProductPage({ params }: { params: Params }) {
     '@type': 'Product',
     name: item.name,
     category: catTitle,
-    image: item.img ? [item.img] : undefined,
+    image: item.images?.length ? item.images : (item.img ? [item.img] : undefined),
     brand: { '@type': 'Brand', name: 'YOM Car Care' },
     offers: {
       '@type': 'Offer',
-      priceCurrency: 'USD',
+      priceCurrency: item.currency || 'USD',
+      price: item.price != null ? item.price : undefined,
       availability: 'https://schema.org/InStoreOnly',
       url: `https://yomcarcare.com/products/${item.category}/${item.slug}`
     }
@@ -57,24 +60,23 @@ export default function ProductPage({ params }: { params: Params }) {
       </nav>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        <div className="relative aspect-[4/3] rounded-2xl border border-white/10 overflow-hidden">
-          {item.img ? (
-            <Image
-              src={item.img}
-              alt={item.name}
-              fill
-              sizes="(max-width:768px) 100vw, (max-width:1200px) 50vw, 50vw"
-              className="object-cover"
-              priority
-            />
-          ) : (
-            <div className="grid h-full w-full place-items-center text-white/50">Image coming soon</div>
-          )}
-        </div>
+        {/* Gallery */}
+        <ImageGallery
+          images={item.images?.length ? item.images : (item.img ? [item.img] : [])}
+          alt={item.name}
+        />
 
+        {/* Details */}
         <div>
           <h1 className="text-3xl font-semibold">{item.name}</h1>
-          {item.size && <p className="mt-2 text-white/70">Size: {item.size}</p>}
+          <div className="mt-2 text-white/80">
+            {item.size ? <span>Size: {item.size}</span> : null}
+            {item.price != null && (
+              <span className="ml-3 inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-sm">
+                Price: {item.currency || 'USD'} {item.price.toFixed(2)}
+              </span>
+            )}
+          </div>
           <p className="mt-4 text-white/80">
             High-quality {catTitle.toLowerCase()} product. Cash on Delivery available in Lubumbashi.
           </p>
