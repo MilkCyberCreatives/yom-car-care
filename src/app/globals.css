@@ -1,26 +1,18 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root{
+  --brand-bg:#0B0B0C;
+  --brand-text:#FFFFFF;
+  --brand-blue:#0073e4; /* UPDATED */
 }
+html,body{color:var(--brand-text);background:var(--brand-bg);}
+html{scroll-behavior:smooth;}
+@layer utilities{ .container-px{@apply container mx-auto px-4 sm:px-6 lg:px-8;} }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* Keep for top bar if you want glass look there */
+.header-glass{@apply bg-black/50 backdrop-blur supports-[backdrop-filter]:bg-black/40 border-b border-white/10;}
+.nav-link{@apply text-sm md:text-base text-white/90 hover:text-white transition-colors;}
+.btn-primary{@apply inline-flex items-center gap-2 rounded-xl px-5 py-3 font-medium bg-[var(--brand-blue)] text-white hover:opacity-90 transition;}
+.btn-ghost{@apply inline-flex items-center gap-2 rounded-xl px-5 py-3 font-medium border border-white/15 hover:border-white/30 text-white/90 transition;}
