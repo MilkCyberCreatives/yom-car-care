@@ -18,6 +18,7 @@ export type Dict = {
     cta_secondary: string
   }
   footer: {
+    address: string            // <-- added
     products: string
     info: string
     faq: string

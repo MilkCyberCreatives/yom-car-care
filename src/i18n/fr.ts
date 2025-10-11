@@ -20,6 +20,7 @@ export const fr: Dict = {
     cta_secondary: 'Nous contacter',
   },
   footer: {
+    address: 'Adresse',        // <-- added
     products: 'Produits',
     info: 'Infos',
     faq: 'FAQ',

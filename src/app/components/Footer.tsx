@@ -7,13 +7,15 @@ export default function Footer() {
   const { t } = useI18n()
 
   return (
-    <footer className="mt-16 border-t border-white/10 bg-zinc-950 text-white">
+    <footer className="mt-16 border-t border-white/10 bg-zinc-950 text-sm">
       <div className="container-px py-10 grid gap-8 md:grid-cols-4">
         <div>
-          <h3 className="text-lg font-semibold">{t.common.brand}</h3>
-          <p className="mt-3 text-white/70">
-            Premium car care products in Lubumbashi. {t.common.cash_on_delivery} available.
-          </p>
+          <div className="text-lg font-semibold">YOM Car Care</div>
+          <p className="mt-2 text-white/70">{t.common.cash_on_delivery}</p>
+          <div className="mt-4 space-x-2">
+            <a href="tel:+243848994045" className="btn-ghost">{t.common.phone_label}: +243 84 899 4045</a>
+            <a href="mailto:info@yomcarcare.com" className="btn-ghost">{t.common.email_label}: info@yomcarcare.com</a>
+          </div>
         </div>
 
         <div>
@@ -23,39 +25,34 @@ export default function Footer() {
             <li>{t.common.address_line2}</li>
             <li>{t.common.address_city}</li>
           </ul>
-          <ul className="mt-3 space-y-1 text-white/80">
-            <li>Tel. +243 84 899 4045</li>
-            <li>{t.common.email}</li>
-          </ul>
         </div>
 
         <div>
-          <h4 className="font-semibold">{t.common.products}</h4>
-          <ul className="mt-3 space-y-2 text-white/80">
-            <li><Link href="/products/exterior" className="hover:underline">{t.cats.exterior}</Link></li>
-            <li><Link href="/products/interior" className="hover:underline">{t.cats.interior}</Link></li>
-            <li><Link href="/products/air-fresheners" className="hover:underline">{t.cats.air}</Link></li>
-            <li><Link href="/products/detailing" className="hover:underline">{t.cats.detailing}</Link></li>
-            <li><Link href="/products/accessories" className="hover:underline">{t.cats.accessories}</Link></li>
+          <h4 className="font-semibold">{t.footer.products}</h4>
+          <ul className="mt-3 space-y-1">
+            <li><Link className="hover:underline" href="/products/exterior">{t.cats.exterior}</Link></li>
+            <li><Link className="hover:underline" href="/products/interior">{t.cats.interior}</Link></li>
+            <li><Link className="hover:underline" href="/products/air-fresheners">{t.cats.air}</Link></li>
+            <li><Link className="hover:underline" href="/products/detailing">{t.cats.detailing}</Link></li>
+            <li><Link className="hover:underline" href="/products/accessories">{t.cats.accessories}</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-semibold">{t.footer.info}</h4>
-          <ul className="mt-3 space-y-2 text-white/80">
-            <li><Link href="/faq" className="hover:underline">{t.footer.faq}</Link></li>
-            <li><Link href="/contact" className="hover:underline">{t.common.contact}</Link></li>
-            <li><Link href="/legal-area" className="hover:underline">{t.footer.legal}</Link></li>
-            <li><Link href="/privacy-policy" className="hover:underline">{t.footer.privacy}</Link></li>
-            <li><Link href="/cookie-policy" className="hover:underline">{t.footer.cookie}</Link></li>
-            <li><Link href="/terms" className="hover:underline">{t.footer.terms}</Link></li>
+          <ul className="mt-3 space-y-1">
+            <li><Link className="hover:underline" href="/faq">{t.footer.faq}</Link></li>
+            <li><Link className="hover:underline" href="/contact">{t.footer.contact}</Link></li>
+            <li><Link className="hover:underline" href="/legal-area">{t.footer.legal_area}</Link></li>
+            <li><Link className="hover:underline" href="/privacy-policy">{t.footer.privacy}</Link></li>
+            <li><Link className="hover:underline" href="/cookie-policy">{t.footer.cookie}</Link></li>
+            <li><Link className="hover:underline" href="/terms">{t.footer.terms}</Link></li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/10">
-        <div className="container-px py-4 text-xs text-white/60">
-          © {new Date().getFullYear()} {t.common.brand} {t.footer.copyright_suffix}
-        </div>
+
+      <div className="border-t border-white/10 py-4 text-center text-white/60">
+        © {new Date().getFullYear()} YOM Car Care. All rights reserved.
       </div>
     </footer>
   )
