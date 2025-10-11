@@ -2,12 +2,11 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import type { ProductData } from '../data/products'
+import type { ProductData } from '../data/products' // -> if file is in src/app/components use: ../../data/products
 
 function formatPrice(p?: number, ccy?: string) {
   if (p == null) return null
-  const val = p.toFixed(2)
-  return `${ccy || 'USD'} ${val}`
+  return `${ccy || 'USD'} ${p.toFixed(2)}`
 }
 
 export default function ProductCard({ p }: { p: ProductData }) {
@@ -30,7 +29,6 @@ export default function ProductCard({ p }: { p: ProductData }) {
           </div>
         )}
 
-        {/* Badge(s) */}
         {p.badges?.length ? (
           <div className="absolute top-2 left-2 flex gap-1">
             {p.badges.slice(0,2).map(b => (
