@@ -1,3 +1,4 @@
+// src/app/page.tsx
 import Hero from './components/Hero'
 import CategoryStrip from './components/CategoryStrip'
 import FeaturedProducts from './components/FeaturedProducts'
@@ -10,7 +11,7 @@ import FloatingWhatsApp from './components/FloatingWhatsApp'
 export default function HomePage() {
   return (
     <>
-      {/* BreadcrumbBar is already rendered globally, so we start with the hero/content */}
+      {/* TopBar + MainHeader + (no Breadcrumb on home) come from layout.tsx */}
       <Hero />
       <CategoryStrip />
       <FeaturedProducts />
