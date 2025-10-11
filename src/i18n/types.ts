@@ -12,7 +12,7 @@ export type Dict = {
     cash_on_delivery: string
   }
   hero: {
-    /** Full title (fallback for UIs that don’t split the heading). */
+    /** Fallback (single string) */
     title: string
     /** Split title used by Hero.tsx */
     title_1: string
@@ -21,6 +21,8 @@ export type Dict = {
     subtitle: string
     cta_primary: string
     cta_secondary: string
+    /** <-- NEW: small line under the hero for language hint */
+    french_hint: string
   }
   footer: {
     address: string

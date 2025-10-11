@@ -21,6 +21,7 @@ export const fr: Dict = {
     subtitle: 'Extérieur, intérieur, detailing & accessoires. Paiement à la livraison.',
     cta_primary: 'Voir les produits',
     cta_secondary: 'Nous contacter',
+    french_hint: 'Besoin du français ? Changez la langue depuis la barre supérieure.',
   },
   footer: {
     address: 'Adresse',
