@@ -1,45 +1,39 @@
-const en = {
+import type { Dict } from './types'
+
+export const en: Dict = {
   common: {
     brand: 'YOM Car Care',
     address_line1: '538 Avenue Kipopo',
     address_line2: 'Golf Malela',
     address_city: 'Lubumbashi',
     phone_label: 'Call',
-    email: 'info@yomcarcare.com',
-    call_now: 'Call Now',
-    browse: 'Browse',
+    email_label: 'Email',
     browse_products: 'Browse Products',
-    categories: 'Categories',
-    products: 'Products',
-    about: 'About Us',
-    contact: 'Contact',
+    call_now: 'Call Now',
+    whatsapp_us: 'WhatsApp Us',
     cash_on_delivery: 'Cash on Delivery',
   },
   hero: {
-    title_1: 'Car care products for a ',
-    title_highlight: 'showroom shine',
-    title_2: ' in Lubumbashi, DRC',
-    subtitle: 'Exterior, interior, detailing, accessories & air fresheners. Fast delivery across Lubumbashi with Cash on Delivery.',
-    french_hint: 'French translation available • EN | FR'
+    title: 'Premium car care in Lubumbashi',
+    subtitle: 'Exterior, interior, detailing & accessories. Pay on delivery.',
+    cta_primary: 'Shop Products',
+    cta_secondary: 'Contact Us',
   },
   footer: {
-    address: 'Address',
+    products: 'Products',
     info: 'Info',
     faq: 'FAQ',
-    legal: 'Legal Area',
+    contact: 'Contact',
+    legal_area: 'Legal Area',
     privacy: 'Privacy Policy',
     cookie: 'Cookie Policy',
     terms: 'General Terms of Use',
-    copyright_suffix: '— Lubumbashi, DRC'
   },
   cats: {
     exterior: 'Exterior',
     interior: 'Interior',
     air: 'Air Fresheners',
     detailing: 'Detailing',
-    accessories: 'Accessories'
-  }
-} as const
-
-export default en
-export type Dict = typeof en
+    accessories: 'Accessories',
+  },
+}

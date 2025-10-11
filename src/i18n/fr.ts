@@ -1,45 +1,39 @@
-const fr = {
+import type { Dict } from './types'
+
+export const fr: Dict = {
   common: {
     brand: 'YOM Car Care',
     address_line1: '538 Avenue Kipopo',
     address_line2: 'Golf Malela',
     address_city: 'Lubumbashi',
     phone_label: 'Appeler',
-    email: 'info@yomcarcare.com',
+    email_label: 'Email',
+    browse_products: 'Voir les produits',
     call_now: 'Appeler maintenant',
-    browse: 'Parcourir',
-    browse_products: 'Parcourir les produits',
-    categories: 'Catégories',
-    products: 'Produits',
-    about: 'À propos',
-    contact: 'Contact',
+    whatsapp_us: 'WhatsApp',
     cash_on_delivery: 'Paiement à la livraison',
   },
   hero: {
-    title_1: 'Des produits d’entretien auto pour une ',
-    title_highlight: 'brillance de showroom',
-    title_2: ' à Lubumbashi, RDC',
-    subtitle: 'Extérieur, intérieur, detailing, accessoires & désodorisants. Livraison rapide à Lubumbashi avec paiement à la livraison.',
-    french_hint: 'Traduction française disponible • EN | FR'
+    title: 'Produits d’entretien auto à Lubumbashi',
+    subtitle: 'Extérieur, intérieur, detailing & accessoires. Paiement à la livraison.',
+    cta_primary: 'Voir les produits',
+    cta_secondary: 'Nous contacter',
   },
   footer: {
-    address: 'Adresse',
+    products: 'Produits',
     info: 'Infos',
     faq: 'FAQ',
-    legal: 'Espace légal',
+    contact: 'Contact',
+    legal_area: 'Zone légale',
     privacy: 'Politique de confidentialité',
-    cookie: 'Politique de cookies',
-    terms: "Conditions générales d'utilisation",
-    copyright_suffix: '— Lubumbashi, RDC'
+    cookie: 'Politique des cookies',
+    terms: "Conditions d'utilisation",
   },
   cats: {
     exterior: 'Extérieur',
     interior: 'Intérieur',
     air: 'Désodorisants',
     detailing: 'Detailing',
-    accessories: 'Accessoires'
-  }
-} as const
-
-export default fr
-export type DictFr = typeof fr
+    accessories: 'Accessoires',
+  },
+}
