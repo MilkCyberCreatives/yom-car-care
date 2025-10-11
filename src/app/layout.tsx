@@ -9,6 +9,7 @@ import CookieConsent from './components/CookieConsent'
 import SeoBreadcrumbJsonLd from './components/SeoBreadcrumbJsonLd'
 import Analytics from './components/Analytics'
 import Script from 'next/script'
+import { Suspense } from 'react'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -51,20 +52,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       '@type': 'PostalAddress',
       streetAddress: '538 Avenue Kipopo, Golf Malela',
       addressLocality: 'Lubumbashi',
-      addressCountry: 'CD'
+      addressCountry: 'CD',
     },
-    // Approximate coordinates for Lubumbashi (adjust if you have exact store coords)
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: -11.6647,
-      longitude: 27.4794
-    },
+    geo: { '@type': 'GeoCoordinates', latitude: -11.6647, longitude: 27.4794 },
     openingHoursSpecification: [
       { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '09:00', closes: '18:00' },
       { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Saturday', opens: '09:00', closes: '14:00' },
-      // Sunday closed
     ],
-    paymentAccepted: 'Cash'
+    paymentAccepted: 'Cash',
   }
 
   return (
@@ -73,10 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* GA4 (Consent default denied) */}
         {GA_ID ? (
           <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-              strategy="afterInteractive"
-            />
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
             <Script id="ga-init" strategy="afterInteractive">
               {`
                 window.dataLayer = window.dataLayer || [];
@@ -95,22 +87,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : null}
 
         {/* Organization JSON-LD */}
-        <Script id="jsonld-org" type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+        <Script id="jsonld-org" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
 
-        {/* Global header */}
-        <TopBar />
-        <MainHeader />
-        <BreadcrumbBar />
-        {/* Breadcrumb JSON-LD for SEO */}
-        <SeoBreadcrumbJsonLd />
-        {/* Auto pageview tracking */}
-        <Analytics />
+        {/* Wrap all client parts under Suspense for SSR/prerender safety */}
+        <Suspense fallback={null}>
+          <TopBar />
+          <MainHeader />
+          <BreadcrumbBar />
+          {/* Breadcrumb JSON-LD for SEO */}
+          <SeoBreadcrumbJsonLd />
+          {/* Auto pageview tracking */}
+          <Analytics />
+        </Suspense>
 
-        {/* Page content */}
-        {children}
+        {/* Page content also wrapped */}
+        <Suspense fallback={null}>{children}</Suspense>
 
-        {/* Global footer & utilities */}
         <Footer />
         <CookieConsent />
       </body>

@@ -1,71 +1,56 @@
+// src/app/search/page.tsx
+import { Suspense } from 'react'
+
+export const dynamic = 'force-dynamic'
+
+function Fallback() {
+  return <div className="container-px py-12 text-white/70">Loading search…</div>
+}
+
+export default function SearchPage() {
+  return (
+    <main className="min-h-[50vh]">
+      <Suspense fallback={<Fallback />}>
+        {/* Client component does the actual useSearchParams reading */}
+        <SearchClient />
+      </Suspense>
+    </main>
+  )
+}
+
+// ----- client chunk -----
+'use client'
+import { useSearchParams } from 'next/navigation'
+import { searchProducts } from '@/lib/search'
 import Link from 'next/link'
 import ProductCard from '../components/ProductCard'
-import { searchProducts } from '@/lib/search'
 
-export default function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
-  const qRaw = (searchParams.q || '').trim()
-  const q = qRaw.toLowerCase()
+function SearchClient() {
+  const sp = useSearchParams()
+  const q = (sp.get('q') || '').trim()
 
-  // Boost cosmetic categories for Congo audience if desired
-  const { results, expanded } = q
-    ? searchProducts(q, {
-        categoryBoost: {
-          'exterior': 1.5,
-          'interior': 1.0,
-          'air-fresheners': 1.2,
-          'detailing': 0.8,
-          'accessories': 0.4,
-        },
-      })
-    : { results: [], expanded: [] }
+  const { results } = q ? searchProducts(q) : { results: [] as any[] }
 
   return (
-    <main className="container-px py-10">
-      <h1 className="text-3xl font-semibold">Search</h1>
-      <p className="mt-2 text-white/70">
-        {qRaw
-          ? <>Results for <strong>“{qRaw}”</strong> — {results.length} found.</>
-          : 'Type a query in the header to search products (EN or FR).'}
-      </p>
+    <div className="container-px py-10">
+      <h1 className="text-2xl font-semibold">Search</h1>
+      <p className="text-white/70 mt-1">Query: “{q || '—'}”</p>
 
-      {qRaw && expanded.length > 0 && (
-        <p className="mt-2 text-xs text-white/60">
-          Including synonyms: {expanded.slice(0, 8).map((t, i) => <span key={t}>{i ? ', ' : ''}{t}</span>)}
-        </p>
+      {!q ? (
+        <p className="mt-6 text-white/70">Type in the search bar to find products.</p>
+      ) : results.length === 0 ? (
+        <p className="mt-6 text-white/70">No results. Try a different term.</p>
+      ) : (
+        <div className="mt-6 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {results.map(r => (
+            <ProductCard key={r.item.slug} p={r.item} />
+          ))}
+        </div>
       )}
 
-      {qRaw && (
-        results.length ? (
-          <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {results.map(r => (
-              <div key={r.item.slug} className="relative">
-                <ProductCard p={r.item} />
-                {r.reasons.length > 0 && (
-                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                    {r.reasons.slice(0, 3).map(k => (
-                      <span key={k} className="rounded bg-black/60 px-2 py-0.5 text-[11px] border border-white/10">
-                        {k}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-8 text-white/70">
-            No results. Try keywords like <em>“leather / cuir”</em>, <em>“wax / cire”</em>, <em>“pneu / tyre”</em>.
-          </div>
-        )
-      )}
-
-      <div className="mt-8 flex flex-wrap gap-2">
-        <Link href="/products/exterior" className="btn-ghost">Exterior</Link>
-        <Link href="/products/interior" className="btn-ghost">Interior</Link>
-        <Link href="/products/air-fresheners" className="btn-ghost">Air Fresheners</Link>
-        <Link href="/products/detailing" className="btn-ghost">Detailing</Link>
-        <Link href="/products/accessories" className="btn-ghost">Accessories</Link>
+      <div className="mt-8">
+        <Link className="btn-ghost" href="/products">Browse all products</Link>
       </div>
-    </main>
+    </div>
   )
 }
