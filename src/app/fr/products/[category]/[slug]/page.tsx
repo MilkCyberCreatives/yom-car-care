@@ -1,13 +1,25 @@
-import ENPage, { generateMetadata as enGenerateMetadata } from '../../../../products/[category]/[slug]/page'
-import { products } from '@/data/products'
+import ProductPage from '../../../../products/_components/ProductPage';
+import { products } from '@/data/products';
+import { buildProductMetadata } from '../../../../products/_lib/productMetadata';
 
-export default ENPage
-export const generateMetadata = enGenerateMetadata
+export default function Page({ params }: { params: { category: string; slug: string } }) {
+  // UI is language-agnostic in the shared component; translate strings inside if needed.
+  return <ProductPage params={params} />;
+}
 
-// IMPORTANT: define FR static params locally so Next exports /fr/products/...
+// Reuse the same metadata logic but set alternates to point back to FR canonical
+export function generateMetadata({ params }: { params: { category: string; slug: string } }) {
+  const meta = buildProductMetadata(params.category, params.slug);
+  return {
+    ...meta,
+    alternates: {
+      canonical: `/fr/products/${params.category}/${params.slug}`,
+      languages: { 'en': `/products/${params.category}/${params.slug}` },
+    },
+  };
+}
+
+// CRUCIAL: local FR static params so export produces /fr/... paths
 export async function generateStaticParams() {
-  return products.map(p => ({
-    category: p.category,
-    slug: p.slug,
-  }))
+  return products.map(p => ({ category: p.category, slug: p.slug }));
 }
