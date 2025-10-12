@@ -1,1 +1,2 @@
-export { default, generateMetadata } from '../../terms/page'
+import Page from '../../terms/page'
+export default Page

@@ -1,1 +1,2 @@
-export { default, generateMetadata } from '../../privacy-policy/page'
+import Page from '../../privacy-policy/page'
+export default Page
