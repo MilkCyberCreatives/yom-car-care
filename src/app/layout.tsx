@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+
 import TopBar from './components/TopBar'
 import MainHeader from './components/MainHeader'
 import BreadcrumbBar from './components/BreadcrumbBar'
@@ -8,8 +9,13 @@ import Footer from './components/Footer'
 import CookieConsent from './components/CookieConsent'
 import SeoBreadcrumbJsonLd from './components/SeoBreadcrumbJsonLd'
 import Analytics from './components/Analytics'
+
 import Script from 'next/script'
 import { Suspense } from 'react'
+
+// ✅ Wrap the entire app with CompareProvider
+import CompareProvider from '@/components/compare/CompareProvider'
+import CompareBar from '@/components/compare/CompareBar'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -17,7 +23,6 @@ const siteName = 'YOM Car Care'
 const siteUrl = 'https://yomcarcare.com'
 const siteDesc =
   'Premium car care products in Lubumbashi. Cash on Delivery. Exterior, interior, detailing & accessories.'
-
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
 export const metadata: Metadata = {
@@ -54,18 +59,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       addressLocality: 'Lubumbashi',
       addressCountry: 'CD',
     },
-    geo: { '@type': 'GeoCoordinates', latitude: -11.6647, longitude: 27.4794 },
-    openingHoursSpecification: [
-      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '09:00', closes: '18:00' },
-      { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Saturday', opens: '09:00', closes: '14:00' },
-    ],
     paymentAccepted: 'Cash',
   }
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        {/* GA4 (Consent default denied) */}
+        {/* GA4 (optional) */}
         {GA_ID ? (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
@@ -89,22 +89,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Organization JSON-LD */}
         <Script id="jsonld-org" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
 
-        {/* Wrap all client parts under Suspense for SSR/prerender safety */}
-        <Suspense fallback={null}>
-          <TopBar />
-          <MainHeader />
-          <BreadcrumbBar />
-          {/* Breadcrumb JSON-LD for SEO */}
-          <SeoBreadcrumbJsonLd />
-          {/* Auto pageview tracking */}
-          <Analytics />
-        </Suspense>
+        {/* ✅ Provider wraps everything that can render ProductCard */}
+        <CompareProvider>
+          <Suspense fallback={null}>
+            <TopBar />
+            <MainHeader />
+            <BreadcrumbBar />
+            <SeoBreadcrumbJsonLd />
+            <Analytics />
+          </Suspense>
 
-        {/* Page content also wrapped */}
-        <Suspense fallback={null}>{children}</Suspense>
+          <Suspense fallback={null}>{children}</Suspense>
 
-        <Footer />
-        <CookieConsent />
+          <Footer />
+          <CookieConsent />
+
+          {/* Floating compare bar */}
+          <CompareBar />
+        </CompareProvider>
       </body>
     </html>
   )

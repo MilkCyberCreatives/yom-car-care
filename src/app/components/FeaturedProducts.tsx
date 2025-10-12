@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import ProductCard from './ProductCard'
+import ProductCard from '../../components/ProductCard'
 import { products } from '../data/products'
 
 export default function FeaturedProducts() {

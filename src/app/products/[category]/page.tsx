@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Script from 'next/script'
 import ProductCard from '../../components/ProductCard'
 import { products } from '@/data/products'
 
@@ -22,9 +23,23 @@ export default function CategoryPage({ params }: { params: Params }) {
   if (list.length === 0) return notFound()
 
   const title = params.category.replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
+  const BASE = process.env.NEXT_PUBLIC_SITE_URL || 'https://yomcarcare.com'
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${title} • YOM Car Care`,
+    itemListElement: list.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${BASE}/products/${p.category}/${p.slug}`,
+      name: p.name,
+    })),
+  }
 
   return (
     <main className="container-px py-10">
+      <Script id="cat-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
       <div className="flex items-end justify-between">
         <h1 className="text-2xl md:text-3xl font-semibold">{title}</h1>
         <div className="text-sm text-white/70">{list.length} item{list.length !== 1 ? 's' : ''}</div>
