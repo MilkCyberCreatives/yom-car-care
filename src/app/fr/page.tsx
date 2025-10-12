@@ -1,3 +1,4 @@
-// French home page reuses the English home component.
-// Our useI18n() hook switches strings based on the "/fr" prefix.
-export { default, generateMetadata } from '../page'
+// Home *does* export `metadata`, so mirror it
+import Home, { metadata as _metadata } from '../page'
+export default Home
+export const metadata = _metadata
