@@ -1,6 +1,5 @@
 export {
   default,
-  generateStaticParams,
   generateMetadata,
-  dynamicParams,
+  generateStaticParams
 } from '../../../../products/[category]/[slug]/page'

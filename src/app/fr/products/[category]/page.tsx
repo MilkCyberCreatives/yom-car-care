@@ -1,2 +1,5 @@
-// src/app/fr/products/[category]/page.tsx
-export { default, generateStaticParams, generateMetadata } from '../../../products/[category]/page'
+export {
+  default,
+  generateMetadata,
+  generateStaticParams
+} from '../../../products/[category]/page'

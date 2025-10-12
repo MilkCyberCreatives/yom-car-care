@@ -13,9 +13,12 @@ import Analytics from './components/Analytics'
 import Script from 'next/script'
 import { Suspense } from 'react'
 
-// ✅ Wrap the entire app with CompareProvider
 import CompareProvider from '@/components/compare/CompareProvider'
 import CompareBar from '@/components/compare/CompareBar'
+
+// ✅ NEW:
+import EnquiryProvider from '@/components/enquiry/EnquiryProvider'
+import EnquiryBar from '@/components/enquiry/EnquiryBar'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -65,7 +68,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        {/* GA4 (optional) */}
+        {/* Org JSON-LD */}
+        <Script id="jsonld-org" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+
+        {/* Analytics optional */}
         {GA_ID ? (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
@@ -86,27 +92,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </>
         ) : null}
 
-        {/* Organization JSON-LD */}
-        <Script id="jsonld-org" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+        {/* Providers (Enquiry wraps all; Compare inside is fine either way) */}
+        <EnquiryProvider>
+          <CompareProvider>
+            <Suspense fallback={null}>
+              <TopBar />
+              <MainHeader />
+              <BreadcrumbBar />
+              <SeoBreadcrumbJsonLd />
+              <Analytics />
+            </Suspense>
 
-        {/* ✅ Provider wraps everything that can render ProductCard */}
-        <CompareProvider>
-          <Suspense fallback={null}>
-            <TopBar />
-            <MainHeader />
-            <BreadcrumbBar />
-            <SeoBreadcrumbJsonLd />
-            <Analytics />
-          </Suspense>
+            <Suspense fallback={null}>{children}</Suspense>
 
-          <Suspense fallback={null}>{children}</Suspense>
+            <Footer />
+            <CookieConsent />
 
-          <Footer />
-          <CookieConsent />
-
-          {/* Floating compare bar */}
-          <CompareBar />
-        </CompareProvider>
+            {/* Floating bars */}
+            <CompareBar />
+            <EnquiryBar />
+          </CompareProvider>
+        </EnquiryProvider>
       </body>
     </html>
   )

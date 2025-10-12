@@ -1,10 +1,12 @@
+// src/components/ProductCard.tsx
 'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingBasket, Plus } from 'lucide-react'
+import { ShoppingCart, Plus } from 'lucide-react'
 import type { ProductData } from '@/data/products'
 import { useCompare } from '@/components/compare/CompareProvider'
+import { useEnquiry } from '@/components/enquiry/EnquiryProvider'
 
 function formatPrice(price?: number | null, curr?: string) {
   if (price == null) return null
@@ -13,7 +15,8 @@ function formatPrice(price?: number | null, curr?: string) {
 
 export default function ProductCard({ p }: { p: ProductData }) {
   const price = formatPrice(p.price, p.currency)
-  const { add } = useCompare()
+  const { add: addCompare } = useCompare()
+  const { add: addEnquiry } = useEnquiry()
 
   return (
     <div className="rounded-xl border border-white/10 bg-zinc-900/40 hover:bg-zinc-900/60 transition p-4">
@@ -38,17 +41,12 @@ export default function ProductCard({ p }: { p: ProductData }) {
       <div className="mt-3 flex items-center justify-between">
         {price ? <div className="font-semibold">{price}</div> : <span className="text-white/60 text-sm">Contact for price</span>}
         <div className="flex gap-2">
-          <button
-            className="btn-ghost h-8 px-3"
-            onClick={() => add(p)}
-            aria-label="Add to compare"
-            title="Add to compare"
-          >
+          <button className="btn-ghost h-8 px-3" onClick={() => addCompare(p)} title="Add to compare">
             <Plus size={16} />
           </button>
-          <Link href={`/products/${p.category}/${p.slug}`} className="btn-primary h-8 px-3">
-            <ShoppingBasket size={16} />
-          </Link>
+          <button className="btn-primary h-8 px-3" onClick={() => addEnquiry(p, 1)} title="Add to enquiry">
+            <ShoppingCart size={16} />
+          </button>
         </div>
       </div>
     </div>

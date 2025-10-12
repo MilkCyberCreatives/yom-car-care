@@ -1,15 +1,17 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL || 'https://yomcarcare.com'
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://yomcarcare.com'
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
-      disallow: ['/api/'],
+      allow: ['/'],
+      disallow: [
+        // nothing blocked for now; add admin/private paths if you create them
+      ],
     },
-    sitemap: `${BASE}/sitemap.xml`,
-    host: BASE,
+    sitemap: [`${SITE}/sitemap.xml`],
+    host: SITE,
   }
 }

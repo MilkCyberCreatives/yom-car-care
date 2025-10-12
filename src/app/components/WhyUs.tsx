@@ -18,7 +18,7 @@ const FEATURES = [
   },
 ]
 
-export default function Benefits() {
+export default function WhyUs() {
   return (
     <section className="container-px py-10">
       <h2 className="text-2xl font-semibold">Why Choose YOM Car Care?</h2>
@@ -27,7 +27,7 @@ export default function Benefits() {
       </p>
 
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map((f) => (
+        {FEATURES.map(f => (
           <div key={f.title} className="card p-5">
             <f.icon className="text-[var(--brand-blue)]" />
             <h3 className="mt-3 text-lg font-semibold">{f.title}</h3>

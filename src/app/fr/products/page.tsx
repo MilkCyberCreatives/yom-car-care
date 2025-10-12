@@ -1,1 +1,1 @@
-export { default, dynamic } from '../../products/page'
+export { default, generateMetadata } from '../../products/page'
