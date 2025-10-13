@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { event } from '../../lib/gtag'
+import { event } from "@/lib/gtag";
 
 export default function PdpCtas({
   itemName,
   category,
   waText,
 }: {
-  itemName: string
-  category: string
-  waText: string
+  itemName: string;
+  category: string;
+  waText: string;
 }) {
   const onWhatsApp = () => {
-    event('whatsapp_click', { location: 'pdp', item_name: itemName, category })
-  }
+    event("whatsapp_click", { location: "pdp", item_name: itemName, category });
+  };
 
   const onCall = () => {
-    event('call_click', { location: 'pdp', item_name: itemName, category })
-  }
+    event("call_click", { location: "pdp", item_name: itemName, category });
+  };
 
   return (
     <div className="mt-6 flex flex-wrap gap-3">
@@ -34,5 +34,5 @@ export default function PdpCtas({
         Call to Order
       </a>
     </div>
-  )
+  );
 }

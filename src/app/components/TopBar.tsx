@@ -1,13 +1,22 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { MapPin, Phone, Mail } from 'lucide-react'
-import { useI18n } from '@/hooks/useI18n'
+import { usePathname } from "next/navigation";
+import { MapPin, Phone, Mail } from "lucide-react";
+import { useI18n } from "@/hooks/useI18n";
 
+/**
+ * Note: For the language toggle, we use raw <a> anchors so we can
+ * freely build absolute hrefs without hitting typedRoutes on Link.
+ * All navigation remains instant due to Next.js client routing.
+ */
 export default function TopBar() {
-  const pathname = usePathname() || '/'
-  const { t } = useI18n()
+  const pathname = usePathname() || "/";
+  const { t } = useI18n();
+
+  const toEN = pathname.replace(/^\/fr/, "") || "/";
+  const toFR = pathname.startsWith("/fr") ? pathname : `/fr${pathname}`;
+
+  const isEN = !pathname.startsWith("/fr");
 
   return (
     <div className="w-full header-glass">
@@ -33,25 +42,23 @@ export default function TopBar() {
 
         {/* Right: language toggle */}
         <div className="flex items-center gap-2 text-xs md:text-sm">
-          <Link
-            href={pathname.replace(/^\/fr/, '') || '/'}
-            locale="en"
-            className="hover:underline aria-[current=true]:font-semibold"
-            aria-current={pathname.startsWith('/fr') ? undefined : 'true'}
+          <a
+            href={toEN}
+            className={`hover:underline ${isEN ? "font-semibold" : ""}`}
+            aria-current={isEN ? "true" : undefined}
           >
             EN
-          </Link>
+          </a>
           <span aria-hidden>•</span>
-          <Link
-            href={pathname.startsWith('/fr') ? pathname : `/fr${pathname}`}
-            locale="fr"
-            className="hover:underline"
-            aria-current={pathname.startsWith('/fr') ? 'true' : undefined}
+          <a
+            href={toFR}
+            className={`hover:underline ${!isEN ? "font-semibold" : ""}`}
+            aria-current={!isEN ? "true" : undefined}
           >
             FR
-          </Link>
+          </a>
         </div>
       </div>
     </div>
-  )
+  );
 }

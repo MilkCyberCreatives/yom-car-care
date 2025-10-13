@@ -1,17 +1,17 @@
-import Image from 'next/image'
+import Image from "next/image";
 
 const BRANDS = [
-  { src: '/logo.svg', alt: 'YOM' },
-  { src: '/logo1.svg', alt: 'Brand 1' },
-  { src: '/logo2.svg', alt: 'Brand 2' },
-]
+  { src: "/logo.svg", alt: "YOM" },
+  { src: "/logo1.svg", alt: "Brand 1" },
+  { src: "/logo2.svg", alt: "Brand 2" },
+];
 
 export default function BrandsStrip() {
   return (
     <section className="container-px py-8">
       <div className="card px-6 py-4">
         <div className="flex flex-wrap items-center justify-center gap-8 opacity-90">
-          {BRANDS.map(b => (
+          {BRANDS.map((b) => (
             <div key={b.alt} className="relative h-8 w-28">
               <Image src={b.src} alt={b.alt} fill sizes="112px" className="object-contain" />
             </div>
@@ -19,5 +19,5 @@ export default function BrandsStrip() {
         </div>
       </div>
     </section>
-  )
+  );
 }

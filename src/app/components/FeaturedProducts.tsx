@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import useLocaleLink from "@/hooks/useLocaleLink";
 import { ReactNode } from "react";
 

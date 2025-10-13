@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { Phone, Mail } from 'lucide-react'
-import { useI18n } from '@/hooks/useI18n'
+import Link from "@/components/LocaleLink"; // ✅ locale-aware internal links
+import { Phone, Mail } from "lucide-react";
+import { useI18n } from "@/hooks/useI18n";
 
 export default function Footer() {
-  const { t } = useI18n()
+  const { t } = useI18n();
 
   return (
     <footer className="mt-16 border-t border-white/10 bg-zinc-950 text-sm">
@@ -18,13 +18,15 @@ export default function Footer() {
           {/* Buttons row: stacked on mobile, inline from md+ */}
           <div className="mt-4 flex flex-col gap-3 md:flex-row">
             <a
-              href={`tel:${t.common.phone.replace(/\s+/g, '')}`}
+              href={`tel:${t.common.phone.replace(/\s+/g, "")}`}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 hover:bg-white/10 transition"
               aria-label={`Call ${t.common.phone}`}
               title={`Call ${t.common.phone}`}
             >
               <Phone size={16} />
-              <span className="font-medium">{t.common.phone_label}: {t.common.phone}</span>
+              <span className="font-medium">
+                {t.common.phone_label}: {t.common.phone}
+              </span>
             </a>
 
             <a
@@ -34,7 +36,9 @@ export default function Footer() {
               title={`Email ${t.common.email}`}
             >
               <Mail size={16} />
-              <span className="font-medium">{t.common.email_label}: {t.common.email}</span>
+              <span className="font-medium">
+                {t.common.email_label}: {t.common.email}
+              </span>
             </a>
           </div>
         </div>
@@ -53,11 +57,31 @@ export default function Footer() {
         <div>
           <h4 className="font-semibold">{t.footer.products}</h4>
           <ul className="mt-3 space-y-1">
-            <li><Link className="hover:underline" href="/products/exterior">{t.cats.exterior}</Link></li>
-            <li><Link className="hover:underline" href="/products/interior">{t.cats.interior}</Link></li>
-            <li><Link className="hover:underline" href="/products/air-fresheners">{t.cats.air}</Link></li>
-            <li><Link className="hover:underline" href="/products/detailing">{t.cats.detailing}</Link></li>
-            <li><Link className="hover:underline" href="/products/accessories">{t.cats.accessories}</Link></li>
+            <li>
+              <Link className="hover:underline" href="/products/exterior">
+                {t.cats.exterior}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/products/interior">
+                {t.cats.interior}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/products/air-fresheners">
+                {t.cats.air}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/products/detailing">
+                {t.cats.detailing}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/products/accessories">
+                {t.cats.accessories}
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -65,12 +89,36 @@ export default function Footer() {
         <div>
           <h4 className="font-semibold">{t.footer.info}</h4>
           <ul className="mt-3 space-y-1">
-            <li><Link className="hover:underline" href="/faq">{t.footer.faq}</Link></li>
-            <li><Link className="hover:underline" href="/contact">{t.footer.contact}</Link></li>
-            <li><Link className="hover:underline" href="/legal-area">{t.footer.legal_area}</Link></li>
-            <li><Link className="hover:underline" href="/privacy-policy">{t.footer.privacy}</Link></li>
-            <li><Link className="hover:underline" href="/cookie-policy">{t.footer.cookie}</Link></li>
-            <li><Link className="hover:underline" href="/terms">{t.footer.terms}</Link></li>
+            <li>
+              <Link className="hover:underline" href="/faq">
+                {t.footer.faq}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/contact">
+                {t.footer.contact}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/legal-area">
+                {t.footer.legal_area}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/privacy-policy">
+                {t.footer.privacy}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/cookie-policy">
+                {t.footer.cookie}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:underline" href="/terms">
+                {t.footer.terms}
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
@@ -80,7 +128,7 @@ export default function Footer() {
         <div className="container-px flex flex-col items-center gap-1 md:flex-row md:justify-between">
           <span>© {new Date().getFullYear()} YOM Car Care. All rights reserved.</span>
           <span>
-            Designed &amp; developed by{' '}
+            Designed &amp; developed by{" "}
             <a
               href="https://milkcybercreatives.co.za/"
               target="_blank"
@@ -94,5 +142,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

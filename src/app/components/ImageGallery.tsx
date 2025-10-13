@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import { useState } from 'react'
+import Image from "next/image";
+import { useState } from "react";
 
 export default function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
-  const [idx, setIdx] = useState(0)
-  const safe = images.length ? images : ['']
-  const current = safe[Math.min(idx, safe.length - 1)] || ''
+  const [idx, setIdx] = useState(0);
+  const safe = images.length ? images : [""];
+  const current = safe[Math.min(idx, safe.length - 1)] || "";
 
   return (
     <div className="space-y-3">
@@ -22,7 +22,9 @@ export default function ImageGallery({ images, alt }: { images: string[]; alt: s
             priority
           />
         ) : (
-          <div className="grid h-full w-full place-items-center text-white/50">Image coming soon</div>
+          <div className="grid h-full w-full place-items-center text-white/50">
+            Image coming soon
+          </div>
         )}
       </div>
 
@@ -35,7 +37,7 @@ export default function ImageGallery({ images, alt }: { images: string[]; alt: s
               type="button"
               onClick={() => setIdx(i)}
               className={`relative aspect-[4/3] rounded-lg overflow-hidden border transition
-                ${i === idx ? 'border-[var(--brand-blue)]' : 'border-white/10 hover:border-white/20'}`}
+                ${i === idx ? "border-[var(--brand-blue)]" : "border-white/10 hover:border-white/20"}`}
               aria-label={`Product image ${i + 1}`}
             >
               <Image src={src} alt={`${alt} ${i + 1}`} fill sizes="120px" className="object-cover" />
@@ -44,5 +46,5 @@ export default function ImageGallery({ images, alt }: { images: string[]; alt: s
         </div>
       )}
     </div>
-  )
+  );
 }

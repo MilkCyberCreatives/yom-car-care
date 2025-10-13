@@ -1,22 +1,22 @@
-import { ShieldCheck, Truck, Sparkles } from 'lucide-react'
+import { ShieldCheck, Truck, Sparkles } from "lucide-react";
 
 const FEATURES = [
   {
     icon: ShieldCheck,
-    title: 'Quality & Authenticity',
-    desc: 'Only trusted, manufacturer-approved products for Congo conditions.',
+    title: "Quality & Authenticity",
+    desc: "Only trusted, manufacturer-approved products for Congo conditions.",
   },
   {
     icon: Truck,
-    title: 'Cash on Delivery',
-    desc: 'Order online, pay at your door in Lubumbashi. Simple & safe.',
+    title: "Cash on Delivery",
+    desc: "Order online, pay at your door in Lubumbashi. Simple & safe.",
   },
   {
     icon: Sparkles,
-    title: 'Expert Guidance',
-    desc: 'Get the right exterior, interior and detailing solution every time.',
+    title: "Expert Guidance",
+    desc: "Get the right exterior, interior and detailing solution every time.",
   },
-]
+];
 
 export default function Benefits() {
   return (
@@ -36,5 +36,5 @@ export default function Benefits() {
         ))}
       </div>
     </section>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
-import Link from 'next/link'
-import { useI18n } from '@/hooks/useI18n'
+import { motion } from "framer-motion";
+import Link from "@/components/LocaleLink"; // ✅ locale-aware wrapper for next/link
+import { useI18n } from "@/hooks/useI18n";
 
 export default function Hero() {
-  const { t } = useI18n()
+  const { t } = useI18n();
 
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden">
@@ -33,8 +33,13 @@ export default function Hero() {
           </h1>
           <p className="mt-4 text-white/70 max-w-xl">{t.hero.subtitle}</p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link href="/products" className="btn-primary">{t.common.browse_products}</Link>
-            <a href="tel:+243848994045" className="btn-ghost">+243 84 899 4045</a>
+            {/* ✅ locale-aware internal route; no typedRoutes error */}
+            <Link href="/products" className="btn-primary">
+              {t.common.browse_products}
+            </Link>
+            <a href="tel:+243848994045" className="btn-ghost">
+              +243 84 899 4045
+            </a>
           </div>
           <p className="mt-3 text-xs text-white/50">
             {t.common.address_line1}, {t.common.address_line2}, {t.common.address_city}
@@ -55,5 +60,5 @@ export default function Hero() {
         </div>
       </div>
     </section>
-  )
+  );
 }
