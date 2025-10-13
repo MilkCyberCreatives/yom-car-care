@@ -1,6 +1,6 @@
 // app/[locale]/layout.tsx
 import type { Metadata } from 'next';
-import './globals.css';
+import '../../globals.css';
 
 export const metadata: Metadata = {
   title: 'YOM Car Care',
