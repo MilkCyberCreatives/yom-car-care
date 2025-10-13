@@ -1,14 +1,39 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from "next/link";
+import type { Metadata, ResolvingMetadata } from "next";
+import type { Route } from "next";
 
-export const metadata: Metadata = {
-  title: 'About Us — YOM Car Care',
-  description:
-    'YOM Car Care supplies premium exterior, interior, detailing, accessories and air fresheners in Lubumbashi. Cash on Delivery and fast local delivery.',
-  alternates: { canonical: '/about' },
+/* ---------------------- Metadata (locale-aware) ---------------------- */
+type PageProps = { params: { locale: string } };
+
+export async function generateMetadata(
+  { params }: PageProps,
+  _parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { locale } = params;
+
+  return {
+    title: "About Us — YOM Car Care",
+    description:
+      "YOM Car Care supplies premium exterior, interior, detailing, accessories and air fresheners in Lubumbashi. Cash on Delivery and fast local delivery.",
+    // With metadataBase set in root layout, relative paths are fine.
+    alternates: {
+      canonical: `/${locale}/about`,
+      languages: {
+        en: "/en/about",
+        fr: "/fr/about",
+      },
+    },
+  };
 }
 
-export default function AboutPage() {
+/* ----------------------------- Page ----------------------------- */
+export default function AboutPage({ params }: PageProps) {
+  const { locale } = params;
+
+  // Small helper to build typed, locale-aware routes (e.g., "/en/products")
+  const l = (path: string) =>
+    (`/${locale}${path.startsWith("/") ? path : `/${path}`}`) as Route;
+
   return (
     <main>
       {/* Top banner */}
@@ -20,13 +45,17 @@ export default function AboutPage() {
           </h1>
           <p className="mt-4 max-w-2xl text-white/70">
             We help drivers, detailers, and fleets keep their vehicles looking new with
-            trusted brands and expert guidance. Order by phone or WhatsApp with{' '}
+            trusted brands and expert guidance. Order by phone or WhatsApp with{" "}
             <strong>Cash on Delivery</strong>.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="tel:+243848994045" className="btn-primary">Call +243 84 899 4045</a>
-            <Link href="/products" className="btn-ghost">Browse Products</Link>
+            <a href="tel:+243848994045" className="btn-primary">
+              Call +243 84 899 4045
+            </a>
+            <Link href={l("/products")} className="btn-ghost">
+              Browse Products
+            </Link>
           </div>
         </div>
       </section>
@@ -69,11 +98,11 @@ export default function AboutPage() {
               <li>• Accessories: sponges, mitts, towels, kits and more</li>
             </ul>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/products/exterior" className="btn-ghost">Exterior</Link>
-              <Link href="/products/interior" className="btn-ghost">Interior</Link>
-              <Link href="/products/air-fresheners" className="btn-ghost">Air Fresheners</Link>
-              <Link href="/products/detailing" className="btn-ghost">Detailing</Link>
-              <Link href="/products/accessories" className="btn-ghost">Accessories</Link>
+              <Link href={l("/products/exterior")} className="btn-ghost">Exterior</Link>
+              <Link href={l("/products/interior")} className="btn-ghost">Interior</Link>
+              <Link href={l("/products/air-fresheners")} className="btn-ghost">Air Fresheners</Link>
+              <Link href={l("/products/detailing")} className="btn-ghost">Detailing</Link>
+              <Link href={l("/products/accessories")} className="btn-ghost">Accessories</Link>
             </div>
           </div>
         </div>
@@ -112,7 +141,7 @@ export default function AboutPage() {
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <a href="tel:+243848994045" className="btn-primary">Call Now</a>
-              <Link href="/products" className="btn-ghost">Browse Products</Link>
+              <Link href={l("/products")} className="btn-ghost">Browse Products</Link>
             </div>
           </div>
 
@@ -136,7 +165,7 @@ export default function AboutPage() {
             Explore the catalog or message us for a tailored recommendation.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/products" className="btn-ghost">Explore Products</Link>
+            <Link href={l("/products")} className="btn-ghost">Explore Products</Link>
             <a
               className="btn-primary"
               href={`https://wa.me/243848994045?text=${encodeURIComponent(
@@ -151,7 +180,7 @@ export default function AboutPage() {
         </div>
       </section>
     </main>
-  )
+  );
 }
 
 /* ---------- tiny presentational components (kept inline to avoid extra files) ---------- */
@@ -162,7 +191,7 @@ function Stat({ label, value }: { label: string; value: string }) {
       <div className="text-3xl font-semibold">{value}</div>
       <div className="mt-1 text-white/70">{label}</div>
     </div>
-  )
+  );
 }
 
 function Value({ title, text }: { title: string; text: string }) {
@@ -171,5 +200,5 @@ function Value({ title, text }: { title: string; text: string }) {
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-white/80 text-sm">{text}</p>
     </div>
-  )
+  );
 }
