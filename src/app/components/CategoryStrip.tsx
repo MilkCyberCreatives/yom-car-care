@@ -1,33 +1,60 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { Sparkles, SprayCan, Flower2, Wrench, Car } from 'lucide-react'
+import Link from "next/link";
+import type { Route } from "next";
+import useLocaleLink from "@/hooks/useLocaleLink";
+import { ReactNode } from "react";
 
-const items = [
-  { href: '/products/exterior', label: 'Exterior', Icon: Car },
-  { href: '/products/interior', label: 'Interior', Icon: Sparkles },
-  { href: '/products/air-fresheners', label: 'Air Fresheners', Icon: Flower2 },
-  { href: '/products/detailing', label: 'Detailing', Icon: SprayCan },
-  { href: '/products/accessories', label: 'Accessories', Icon: Wrench },
-]
+type Item = {
+  href: string;      // e.g. "/products/exterior"
+  label: string;     // e.g. "Exterior"
+  icon?: ReactNode;  // optional icon
+};
 
-export default function CategoryStrip() {
+export default function CategoryStrip({ items }: { items?: Item[] }) {
+  const { l } = useLocaleLink();
+
+  const data: Item[] =
+    items ?? [
+      { href: "/products/exterior", label: "Exterior" },
+      { href: "/products/interior", label: "Interior" },
+      { href: "/products/air-fresheners", label: "Air Fresheners" },
+      { href: "/products/detailing", label: "Detailing" },
+      { href: "/products/accessories", label: "Accessories" },
+    ];
+
   return (
-    <section className="border-t border-white/10 bg-zinc-950">
-      <div className="container-px py-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {items.map(({ href, label, Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="group rounded-xl border border-white/10 hover:border-white/20 bg-zinc-900/30 hover:bg-zinc-900/50 transition p-4 flex items-center gap-3"
-          >
-            <span className="grid place-items-center rounded-lg bg-[var(--brand-blue)]/20 p-2">
-              <Icon size={20} className="text-[var(--brand-blue)]" />
-            </span>
-            <span className="font-medium text-white/90 group-hover:text-white">{label}</span>
-          </Link>
-        ))}
+    <div className="container-px">
+      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {data.map(({ href, label, icon }) => {
+          const typedHref = l(href) as Route;
+          return (
+            <Link
+              key={href}
+              href={typedHref}
+              className="group rounded-xl border border-white/10 hover:border-white/20 bg-zinc-900/30 hover:bg-zinc-900/50 transition p-4 flex items-center gap-3"
+            >
+              <span className="grid place-items-center rounded-lg bg-[var(--brand-blue)]/20 p-2">
+                {icon ?? (
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="opacity-80 group-hover:opacity-100 transition"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M3 7a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zm2 2v7h14V9z"
+                    />
+                  </svg>
+                )}
+              </span>
+              <span className="font-medium">{label}</span>
+            </Link>
+          );
+        })}
       </div>
-    </section>
-  )
+    </div>
+  );
 }

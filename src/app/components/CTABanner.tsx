@@ -1,30 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { Route } from "next";
-import { useMemo } from "react";
-
-/**
- * Detect current locale from the pathname (first segment),
- * then build a typed locale-aware href (e.g., "/en/products").
- */
-function useLocaleLinkBuilder() {
-  const pathname = usePathname() || "/en";
-  const parts = pathname.split("/").filter(Boolean);
-  const supported = new Set(["en", "fr"]);
-  const locale = supported.has(parts[0] ?? "") ? (parts[0] as "en" | "fr") : "en";
-
-  // helper to produce a typed Route
-  return useMemo(() => {
-    const l = (path: string) =>
-      (`/${locale}${path.startsWith("/") ? path : `/${path}`}`) as Route;
-    return { locale, l };
-  }, [locale]);
-}
+import useLocaleLink from "@/hooks/useLocaleLink";
 
 export default function CTABanner() {
-  const { l } = useLocaleLinkBuilder();
+  const { l } = useLocaleLink();
 
   return (
     <section className="container-px my-8">
@@ -36,10 +16,7 @@ export default function CTABanner() {
 
         <div className="mt-4 flex flex-wrap gap-3">
           {/* ✅ typed, locale-aware route */}
-          <Link
-            href={l("/products")}
-            className="btn-ghost bg-white/10 hover:bg-white/20"
-          >
+          <Link href={l("/products")} className="btn-ghost bg-white/10 hover:bg-white/20">
             Browse Products
           </Link>
 
