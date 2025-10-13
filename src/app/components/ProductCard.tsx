@@ -6,12 +6,13 @@ import type { ProductData } from "../data/products";
 
 /**
  * ProductCard
- * - Typed with your ProductData shape.
+ * - Uses the first entry in `p.images` (array) for the cover.
  * - Locale-aware internal links via LocaleLink.
- * - Works even if image is missing.
+ * - Safe fallbacks if images/price are missing.
  */
 export default function ProductCard({ p }: { p: ProductData }) {
   const href = `/products/${p.category}/${p.slug}`;
+  const cover = Array.isArray(p.images) && p.images.length ? p.images[0] : "";
 
   return (
     <Link
@@ -21,9 +22,9 @@ export default function ProductCard({ p }: { p: ProductData }) {
     >
       {/* Image */}
       <div className="relative w-full aspect-[4/3]">
-        {p.image ? (
+        {cover ? (
           <Image
-            src={p.image}
+            src={cover}
             alt={p.name}
             fill
             sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 25vw"
@@ -49,15 +50,10 @@ export default function ProductCard({ p }: { p: ProductData }) {
         </div>
 
         <div className="mt-2 flex items-center justify-between text-sm text-white/70">
-          <span className="capitalize">
-            {(p.category || "").replace(/-/g, " ")}
-          </span>
-          <span className="font-medium text-white">
-            {renderPrice(p.price)}
-          </span>
+          <span className="capitalize">{(p.category || "").replace(/-/g, " ")}</span>
+          <span className="font-medium text-white">{renderPrice(p.price)}</span>
         </div>
 
-        {/* Optional short description */}
         {p.subtitle ? (
           <p className="mt-2 text-xs text-white/60 line-clamp-2">{p.subtitle}</p>
         ) : null}
@@ -70,14 +66,9 @@ export default function ProductCard({ p }: { p: ProductData }) {
 
 function renderPrice(price: ProductData["price"]) {
   if (price === undefined || price === null || price === "") return "";
-  // If already a string (e.g., "from $10" or "on request"), show as-is.
-  if (typeof price === "string") return price;
-
-  // Otherwise assume number in USD-like formatting (adjust to CDF if needed).
+  if (typeof price === "string") return price; // e.g., "from $10" or "on request"
   try {
-    return `$${Number(price).toLocaleString(undefined, {
-      maximumFractionDigits: 0,
-    })}`;
+    return `$${Number(price).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
   } catch {
     return String(price);
   }
