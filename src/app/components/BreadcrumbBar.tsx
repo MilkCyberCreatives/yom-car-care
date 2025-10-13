@@ -1,97 +1,90 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { Route } from "next";
+import { Fragment, useMemo } from "react";
 
 /**
- * Global breadcrumb with a background image.
- * Automatically hides on the Home page ("/" and "/fr").
+ * Turn "/en/products/exterior/foam-wash" into:
+ * [
+ *   { label: "Home", href: "/en" },
+ *   { label: "Products", href: "/en/products" },
+ *   { label: "Exterior", href: "/en/products/exterior" },
+ *   { label: "Foam wash", href: "/en/products/exterior/foam-wash" }
+ * ]
+ *
+ * All hrefs are typed as Route to satisfy `typedRoutes`.
  */
+function useBreadcrumbs() {
+  const pathname = usePathname() || "/en"; // default to /en if undefined
+  // Segments without empty strings
+  const parts = pathname.split("/").filter(Boolean);
+
+  // Detect locale (assumes first segment is a locale like "en" or "fr")
+  const supported = new Set(["en", "fr"]);
+  const [maybeLocale, ...rest] = parts;
+  const locale = supported.has(maybeLocale ?? "") ? (maybeLocale as "en" | "fr") : "en";
+
+  // Rebuild from the detected locale onward
+  const segments = [locale, ...rest];
+
+  return useMemo(() => {
+    const items: { label: string; href: Route }[] = [];
+
+    // Helper: accumulate a path and type as Route
+    let acc = "";
+    for (let i = 0; i < segments.length; i++) {
+      acc += `/${segments[i]}`;
+
+      // Label: humanize the segment (you can add custom maps if needed)
+      const raw = segments[i];
+      const label =
+        i === 0
+          ? "Home"
+          : decodeURIComponent(raw)
+              .replace(/-/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase());
+
+      const href = acc as Route; // ✅ typed route
+      items.push({ label, href });
+    }
+
+    return items;
+  }, [segments]);
+}
+
 export default function BreadcrumbBar() {
-  const pathname = (usePathname() || '/').replace(/\/+$/, '') || '/'
-  const isHome = pathname === '/' || pathname === '/fr'
-  if (isHome) return null
+  const crumbs = useBreadcrumbs();
 
-  const segments = pathname.split('/').filter(Boolean)
-
-  const titleCase = (s: string) =>
-    s.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase())
-
-  const labelFor = (seg: string) => {
-    switch (seg) {
-      case 'products': return 'Products'
-      case 'about': return 'About Us'
-      case 'contact': return 'Contact'
-      case 'faq': return 'FAQ'
-      case 'legal-area': return 'Legal Area'
-      case 'privacy-policy': return 'Privacy Policy'
-      case 'cookie-policy': return 'Cookie Policy'
-      case 'terms': return 'General Terms of Use'
-      case 'exterior': return 'Exterior'
-      case 'interior': return 'Interior'
-      case 'air-fresheners': return 'Air Fresheners'
-      case 'detailing': return 'Detailing'
-      case 'accessories': return 'Accessories'
-      default: return titleCase(seg)
-    }
+  // If we only have the locale root (e.g., "/en"), you can choose to hide the bar.
+  if (crumbs.length <= 1) {
+    return null;
   }
-
-  const top = segments[0] ?? ''
-  const bannerForTop = (t: string) => {
-    switch (t) {
-      case 'products':
-        return 'https://images.unsplash.com/photo-1542365887-1f7475d0d34a?q=80&w=1600&auto=format&fit=crop'
-      case 'about':
-        return 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1600&auto=format&fit=crop'
-      case 'contact':
-        return 'https://images.unsplash.com/photo-1520949121-7b225f0b9b37?q=80&w=1600&auto=format&fit=crop'
-      default:
-        return 'https://images.unsplash.com/photo-1550355291-bbee04a92027?q=80&w=1600&auto=format&fit=crop'
-    }
-  }
-
-  const bg = bannerForTop(top)
-
-  const crumbs = [
-    { href: '/', label: 'Home' },
-    ...segments.map((seg, i) => {
-      const href = '/' + segments.slice(0, i + 1).join('/')
-      return { href, label: labelFor(seg) }
-    }),
-  ]
-
-  const heading = crumbs[crumbs.length - 1]?.label || 'Home'
 
   return (
-    <section
-      className="relative border-b border-white/10"
-      style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url(${bg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      <div className="container-px py-8 md:py-12">
-        <h1 className="text-2xl md:text-4xl font-semibold">{heading}</h1>
-
-        <nav aria-label="Breadcrumb" className="mt-3 text-sm text-white/80">
-          {crumbs.map((c, i) => {
-            const isLast = i === crumbs.length - 1
-            return (
-              <span key={c.href}>
-                {!isLast ? (
-                  <>
-                    <Link href={c.href} className="hover:underline">{c.label}</Link>
-                    <span className="mx-2">/</span>
-                  </>
-                ) : (
-                  <span className="text-white">{c.label}</span>
-                )}
-              </span>
-            )
-          })}
-        </nav>
-      </div>
-    </section>
-  )
+    <div className="border-b border-white/10 bg-black/20">
+      <nav className="container-px py-2 text-sm text-white/70" aria-label="Breadcrumb">
+        {crumbs.map((c, idx) => {
+          const isLast = idx === crumbs.length - 1;
+          return (
+            <Fragment key={c.href}>
+              {!isLast ? (
+                <>
+                  <Link href={c.href} className="hover:underline">
+                    {c.label}
+                  </Link>
+                  <span className="mx-2">/</span>
+                </>
+              ) : (
+                <span aria-current="page" className="text-white">
+                  {c.label}
+                </span>
+              )}
+            </Fragment>
+          );
+        })}
+      </nav>
+    </div>
+  );
 }
