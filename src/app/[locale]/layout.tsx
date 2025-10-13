@@ -1,24 +1,24 @@
-// app/[locale]/layout.tsx
-import type { Metadata } from 'next';
-import '../../globals.css';
+// src/app/[locale]/layout.tsx
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: 'YOM Car Care',
-  description: 'Premium car care products.',
+  title: "YOM Car Care",
+  description: "Premium car care products.",
   openGraph: {
-    type: 'website', // ✅ valid; do NOT use "product"
-    title: 'YOM Car Care',
-    description: 'Premium car care products.',
-    url: 'https://your-domain.com',
+    type: "website",
+    title: "YOM Car Care",
+    description: "Premium car care products.",
+    url: "https://yomcarcare.com", // TODO: replace with real domain
   },
 };
 
-export default function RootLayout({
-  params,
+export default function LocaleLayout({
   children,
+  params,
 }: {
+  children: ReactNode;
   params: { locale: string };
-  children: React.ReactNode;
 }) {
   return (
     <html lang={params.locale}>
