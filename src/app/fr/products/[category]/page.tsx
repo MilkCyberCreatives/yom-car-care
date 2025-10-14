@@ -6,15 +6,29 @@ export const dynamic = "force-static";
 type Params = { params: { category: string } };
 
 function thumbOf(p: ProductData): string {
-  return p.img || (p.images && p.images[0]) || "";
+  // Defensive read so it compiles even if ProductData doesn't declare `img`
+  const anyP = p as any;
+  const img: string | undefined = anyP?.img;
+  const firstFromImages: string | undefined =
+    Array.isArray(anyP?.images) && anyP.images.length ? anyP.images[0] : undefined;
+  return img || firstFromImages || "";
 }
 
 function prettyCat(s: string) {
   return s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
+function formatPrice(price: number | string, currency?: string) {
+  const n = typeof price === "string" ? Number(price) : price;
+  if (!isFinite(n)) return String(price);
+  const cur = (currency || "USD").toUpperCase();
+  return cur === "USD"
+    ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+    : `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${cur}`;
+}
+
 export default function CategoryPageFR({ params }: Params) {
-  const cat = params.category; // "exterior", "air-fresheners", etc.
+  const cat = params.category;
   const list = products.filter((p) => p.category === cat);
 
   return (
@@ -73,12 +87,10 @@ export default function CategoryPageFR({ params }: Params) {
                   <div className="text-sm text-white/70 capitalize">
                     {p.category.replace(/-/g, " ")}
                   </div>
-                  <div className="mt-1 font-medium leading-snug line-clamp-2">
-                    {p.name}
-                  </div>
+                  <div className="mt-1 font-medium leading-snug line-clamp-2">{p.name}</div>
                   {p.price !== undefined && p.price !== null ? (
                     <div className="mt-1 text-white/90 text-sm">
-                      {formatPrice(p.price, p.currency)}
+                      {formatPrice(p.price, (p as any)?.currency)}
                     </div>
                   ) : null}
                 </div>
@@ -89,15 +101,4 @@ export default function CategoryPageFR({ params }: Params) {
       )}
     </main>
   );
-}
-
-/* ---------------- helpers ---------------- */
-
-function formatPrice(price: number | string, currency?: string) {
-  const n = typeof price === "string" ? Number(price) : price;
-  if (!isFinite(n)) return String(price);
-  const cur = (currency || "USD").toUpperCase();
-  return cur === "USD"
-    ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-    : `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${cur}`;
 }
