@@ -38,7 +38,8 @@ export async function generateMetadata(
       description: desc,
       url: canonical,
       siteName: "YOM Car Care",
-      type: "product",
+      // IMPORTANT: Next.js types don't accept "product" here
+      type: "website",
     },
   };
 }

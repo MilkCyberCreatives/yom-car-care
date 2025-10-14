@@ -10,7 +10,6 @@ function findProduct({ category, slug }: Params): ProductData | undefined {
 }
 
 export async function generateStaticParams() {
-  // same params set as EN, folder provides the /fr path segment
   return products.map((p) => ({ category: p.category, slug: p.slug }));
 }
 
@@ -39,7 +38,8 @@ export async function generateMetadata(
       description: desc,
       url: canonical,
       siteName: "YOM Car Care",
-      type: "product",
+      // IMPORTANT: use a supported type
+      type: "website",
     },
   };
 }
@@ -48,6 +48,5 @@ export default function Page({ params }: { params: Params }) {
   const product = findProduct(params);
   if (!product) notFound();
 
-  // Shared UI is language-agnostic; translate inside component as needed
   return <ProductPage product={product} />;
 }
