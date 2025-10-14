@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { searchProducts } from "@/lib/search";
-import Link from "@/components/LocaleLink"; // ✅ locale-aware for "view all results"
+import Link from "@/app/components/LocaleLink"; // ✅ locale-aware for "view all results"
 
 export default function SearchBar({ className = "" }: { className?: string }) {
   const [q, setQ] = useState("");

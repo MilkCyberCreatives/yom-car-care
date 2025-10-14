@@ -1,4 +1,6 @@
 // lib/products.ts
+export * from "@/app/data/products";
+
 export type Product = {
   slug: string;
   category: 'exterior' | 'interior' | 'air-fresheners' | 'detailing' | 'accessories';

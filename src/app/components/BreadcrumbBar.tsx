@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "@/components/LocaleLink";
+import Link from "@/app/components/LocaleLink";
 import { usePathname } from "next/navigation";
 import type { Route } from "next";
 import { Fragment, useMemo } from "react";

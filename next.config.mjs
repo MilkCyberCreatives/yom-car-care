@@ -2,30 +2,24 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // keep anything else you already had here
+  // Keep this off until all hrefs strictly match generated route types
   experimental: {
-    typedRoutes: true,
+    typedRoutes: false,
   },
 
-  i18n: {
-    locales: ['en', 'fr'],
-    defaultLocale: 'en',
-  },
-
+  // Allow Next/Image to optimize your remote images (Unsplash demo URLs)
   images: {
-    // Either "domains" or "remotePatterns" works. RemotePatterns is more flexible.
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
-      // Optional: allow these Unsplash hosts too, if you might use them.
-      { protocol: 'https', hostname: 'plus.unsplash.com' },
-      { protocol: 'https', hostname: 'source.unsplash.com' },
     ],
-    // Optional but recommended: modern formats
-    formats: ['image/avif', 'image/webp'],
   },
+
+  // If you ever need to set custom headers or redirects, add them here:
+  // async headers() { return []; },
+  // async redirects() { return []; },
 };
 
 export default nextConfig;

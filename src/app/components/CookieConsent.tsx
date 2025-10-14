@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GA_ID, setConsent } from "@/lib/gtag";
-import Link from "@/components/LocaleLink"; // ✅ locale-aware internal links
+import Link from "@/app/components/LocaleLink"; // ✅ locale-aware internal links
 
 const KEY = "yom-cookie-consent:v1";
 

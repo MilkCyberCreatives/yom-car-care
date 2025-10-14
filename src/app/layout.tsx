@@ -28,7 +28,7 @@ const siteDesc =
   "Premium car care products in Lubumbashi. Cash on Delivery. Exterior, interior, detailing & accessories.";
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-// ——— Metadata ———
+/* -------------------- Metadata -------------------- */
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -56,15 +56,11 @@ export const metadata: Metadata = {
     description: siteDesc,
   },
   icons: {
-    // Use the SVG favicon in /public with ICO fallback
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico" },
     ],
-    // iOS home screen prefers PNG
     apple: "/apple-touch-icon.png",
-    // Optional: Safari pinned tab (add file if you have it)
-    // other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0073e4" }],
   },
 };
 

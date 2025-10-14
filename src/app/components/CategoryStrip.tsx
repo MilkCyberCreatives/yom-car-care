@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "@/components/LocaleLink";
+import Link from "@/app/components/LocaleLink";
 import type { Route } from "next";
 import useLocaleLink from "@/hooks/useLocaleLink";
 import { ReactNode } from "react";

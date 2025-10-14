@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "@/components/LocaleLink";
+import Link from "@/app/components/LocaleLink";
 import useLocaleLink from "@/hooks/useLocaleLink";
 
 export default function CTABanner() {

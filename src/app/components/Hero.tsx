@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "@/components/LocaleLink"; // ✅ locale-aware wrapper for next/link
+import Link from "@/app/components/LocaleLink"; // ✅ locale-aware wrapper for next/link
 import { useI18n } from "@/hooks/useI18n";
 
 export default function Hero() {

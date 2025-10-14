@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "@/components/LocaleLink"; // ✅ locale-aware internal links
+import Link from "@/app/components/LocaleLink"; // ✅ locale-aware internal links
 import { Phone, Mail } from "lucide-react";
 import { useI18n } from "@/hooks/useI18n";
 
