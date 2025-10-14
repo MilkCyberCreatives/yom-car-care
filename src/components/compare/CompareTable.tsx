@@ -1,108 +1,74 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { X } from 'lucide-react'
-import { useCompare } from './CompareProvider'
+import { useCompare } from "@/components/compare/CompareProvider";
 
-export default function CompareTable() {
-  const { items, remove, clear } = useCompare()
+type Props = {
+  /** Optional close handler for parent bars/drawers */
+  onClose?: () => void;
+};
 
-  if (items.length === 0) {
-    return <p className="text-white/70">No items yet. Add products to compare from any product card.</p>
-  }
+export default function CompareTable({ onClose }: Props) {
+  const { items = [], remove, clear } = useCompare();
+
+  if (!items.length) return null;
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-white/80">
-          Comparing {items.length} item{items.length !== 1 ? 's' : ''}
+    <div className="mt-3 rounded-xl border border-white/10 bg-zinc-950/80">
+      <div className="flex items-center justify-between p-3">
+        <div className="text-sm font-medium">Compare</div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              clear?.();
+              onClose?.();
+            }}
+          >
+            Clear
+          </button>
+          <button type="button" className="btn-ghost" onClick={onClose}>
+            Close
+          </button>
         </div>
-        <button className="btn-ghost h-9 px-3" onClick={clear}>
-          Clear all
-        </button>
       </div>
 
-      <table className="min-w-[720px] w-full border-collapse">
-        <thead>
-          <tr className="text-left text-white/70">
-            <th className="p-2 border-b border-white/10">Product</th>
-            {items.map(p => (
-              <th key={p.slug} className="p-2 border-b border-white/10 align-bottom">
-                <div className="flex items-center justify-between gap-2">
-                  <Link href={`/products/${p.category}/${p.slug}`} className="font-medium hover:underline">
-                    {p.name}
-                  </Link>
-                  <button className="btn-ghost h-8 w-8 p-0" onClick={() => remove(p.slug)} aria-label="Remove">
-                    <X size={16} />
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-left text-white/70">
+            <tr>
+              <th className="px-3 py-2">Product</th>
+              <th className="px-3 py-2">Category</th>
+              <th className="px-3 py-2">Size</th>
+              <th className="px-3 py-2">Price</th>
+              <th className="px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((p: any) => (
+              <tr key={p.slug} className="border-t border-white/10">
+                <td className="px-3 py-2">{p.name}</td>
+                <td className="px-3 py-2 capitalize">
+                  {String(p.category || "").replace(/-/g, " ")}
+                </td>
+                <td className="px-3 py-2">{p.size ?? "—"}</td>
+                <td className="px-3 py-2">
+                  {p.price != null ? String(p.price) : "—"}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  <button
+                    type="button"
+                    className="text-white/70 hover:text-white underline"
+                    onClick={() => remove?.(p.slug)}
+                  >
+                    remove
                   </button>
-                </div>
-              </th>
+                </td>
+              </tr>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Image row */}
-          <tr>
-            <td className="p-2 text-white/70">Image</td>
-            {items.map(p => (
-              <td key={p.slug} className="p-2">
-                <div className="relative h-28 w-full max-w-[180px] overflow-hidden rounded-lg border border-white/10 bg-zinc-900/40">
-                  {p.img ? (
-                    <Image src={p.img} alt={p.name} fill className="object-cover" sizes="180px" />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center text-white/40">No image</div>
-                  )}
-                </div>
-              </td>
-            ))}
-          </tr>
-
-          {/* Category */}
-          <tr className="border-t border-white/10">
-            <td className="p-2 text-white/70">Category</td>
-            {items.map(p => (
-              <td key={p.slug} className="p-2 capitalize">{p.category.replace(/-/g, ' ')}</td>
-            ))}
-          </tr>
-
-          {/* Size */}
-          <tr className="border-t border-white/10">
-            <td className="p-2 text-white/70">Size</td>
-            {items.map(p => (
-              <td key={p.slug} className="p-2">{p.size || '—'}</td>
-            ))}
-          </tr>
-
-          {/* Price */}
-          <tr className="border-t border-white/10">
-            <td className="p-2 text-white/70">Price</td>
-            {items.map(p => (
-              <td key={p.slug} className="p-2">
-                {p.price != null ? `${p.currency || 'USD'} ${p.price.toFixed(2)}` : 'Contact for price'}
-              </td>
-            ))}
-          </tr>
-
-          {/* Badges / tags */}
-          <tr className="border-t border-white/10">
-            <td className="p-2 text-white/70">Tags</td>
-            {items.map(p => (
-              <td key={p.slug} className="p-2">
-                {(p.badges || []).length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {p.badges!.map(t => (
-                      <span key={t} className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-sm">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                ) : '—'}
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
-  )
+  );
 }
