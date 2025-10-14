@@ -38,7 +38,7 @@ export async function generateMetadata(
       description: desc,
       url: canonical,
       siteName: "YOM Car Care",
-      // IMPORTANT: use a supported type
+      // Use a supported type
       type: "website",
     },
   };
