@@ -1,158 +1,63 @@
 "use client";
 
 import { useMemo } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import ProductCard from "@/app/components/ProductCard"; // adjust if your path differs
-import { products, type ProductData, type Category } from "@/data/products";
+import type { ProductData, Badge, Category } from "@/data/products";
+import ProductCard from "@/app/components/ProductCard";
+import { useSearchParams } from "next/navigation";
 
-/** Build a thumbnail from either `img` or first `images[]` without type errors */
-function thumbOf(p: ProductData): string {
-  const anyP = p as any;
-  const img: string | undefined = anyP?.img;
-  const firstFromImages: string | undefined =
-    Array.isArray(anyP?.images) && anyP.images.length ? anyP.images[0] : undefined;
-  return img || firstFromImages || "";
-}
+/**
+ * Explicit props contract so JSX knows this component takes `items`.
+ */
+export type ProductsClientProps = { items: ProductData[] };
 
-/** Pretty print category slug */
-function prettyCat(s: string) {
-  return s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
-}
+export default function ProductsClient({ items }: ProductsClientProps) {
+  const search = useSearchParams();
 
-type SortKey = "name_asc" | "name_desc";
+  const q = (search?.get("q") || "").trim().toLowerCase();
+  const catParam = (search?.get("category") || "") as Category | "";
+  const sizeParam = search?.get("size") || "";
 
-export default function ProductsClient() {
-  const pathname = usePathname() || "/products";
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const tagParam = (search?.get("tag") || "").toLowerCase();
+  const allowedBadges: Badge[] = ["new", "popular", "bestseller"];
+  const tag: Badge | undefined = allowedBadges.includes(tagParam as Badge)
+    ? (tagParam as Badge)
+    : undefined;
 
-  // ---- read filters from URL
-  const q = (searchParams?.get("q") || "").trim().toLowerCase();
-  const cat = (searchParams?.get("category") || "") as Category | "";
-  const size = searchParams?.get("size") || "";
-  const tag = searchParams?.get("tag") || ""; // raw string from URL
-  const min = searchParams?.get("min");
-  const max = searchParams?.get("max");
-  const sort = (searchParams?.get("sort") as SortKey) || "name_asc";
-  const page = Math.max(1, Number(searchParams?.get("page") || 1));
-  const pageSize = Math.max(1, Math.min(48, Number(searchParams?.get("ps") || 24)));
+  const minNum = search?.get("min") ? Number(search!.get("min")) : null;
+  const maxNum = search?.get("max") ? Number(search!.get("max")) : null;
 
-  // ---- filtering + sorting
   const filtered = useMemo(() => {
-    const parseNum = (v: string | null | undefined) => {
-      if (v == null) return null;
-      const n = Number(v);
-      return Number.isFinite(n) ? n : null;
-    };
-    const minNum = parseNum(min);
-    const maxNum = parseNum(max);
+    const list = Array.isArray(items) ? items : [];
 
-    let list = products.filter((p) => {
-      if (cat && p.category !== cat) return false;
-      if (size && p.size !== size) return false;
+    return list.filter((p) => {
+      if (catParam && p.category !== catParam) return false;
+      if (sizeParam && p.size && p.size !== sizeParam) return false;
+      if (tag && !(p.badges || []).includes(tag)) return false;
 
-      // Tag/badge comparison (defensive: treat badges as strings)
-      if (tag) {
-        const badges = ((p as any)?.badges || []) as unknown[];
-        const badgeStrings = badges.map((b) => String(b));
-        if (!badgeStrings.includes(tag)) return false;
-      }
-
-      // Coerce price for comparisons (p.price can be string | number | undefined)
-      const priceNum =
-        p.price == null
-          ? null
-          : Number(p.price as number | string);
-
-      if (minNum != null && ((priceNum ?? Infinity) < minNum)) return false;
-      if (maxNum != null && ((priceNum ?? 0) > maxNum)) return false;
+      const price = typeof p.price === "number" ? p.price : NaN;
+      if (minNum != null && !Number.isNaN(price) && price < minNum) return false;
+      if (maxNum != null && !Number.isNaN(price) && price > maxNum) return false;
 
       if (q) {
-        const hay = `${p.name} ${p.slug} ${p.category} ${p.size || ""}`.toLowerCase();
+        const hay = `${p.name} ${p.category} ${p.slug}`
+          .toLowerCase()
+          .replace(/\s+/g, " ");
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-
-    // sort
-    list = [...list].sort((a, b) => {
-      const cmp = a.name.localeCompare(b.name);
-      return sort === "name_desc" ? -cmp : cmp;
-    });
-
-    return list;
-  }, [q, cat, size, tag, min, max, sort]);
-
-  // ---- pagination
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * pageSize;
-  const pageItems = filtered.slice(start, start + pageSize);
-
-  const setPage = (next: number) => {
-    const sp = new URLSearchParams(searchParams?.toString());
-    sp.set("page", String(next));
-    router.push(`${pathname}?${sp.toString()}`);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
+  }, [items, q, catParam, sizeParam, tag, minNum, maxNum]);
 
   return (
-    <section className="container-px py-8">
-      <header className="mb-4">
-        <p className="text-[13px] uppercase tracking-widest text-white/60">Products</p>
-        <h1 className="mt-1 text-2xl md:text-3xl font-semibold">
-          {cat ? prettyCat(cat) : "All Products"}
-        </h1>
-        <p className="mt-2 text-white/70">
-          Showing {filtered.length} item{filtered.length === 1 ? "" : "s"}
-          {q ? (
-            <>
-              {" "}
-              for search "<span className="text-white">{q}</span>"
-            </>
-          ) : null}
-        </p>
-      </header>
-
-      {/* Grid */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {pageItems.map((p) => (
-          <ProductCard
-            key={p.slug}
-            // If your ProductCard needs an image prop, inject a safe thumb:
-            p={{ ...p, img: thumbOf(p) } as any}
-          />
-        ))}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <button
-            disabled={safePage <= 1}
-            onClick={() => setPage(safePage - 1)}
-            className={`btn-ghost px-4 py-2 ${safePage <= 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-            aria-label="Previous page"
-          >
-            Prev
-          </button>
-
-          <span className="text-white/70 text-sm">
-            Page {safePage} of {totalPages}
-          </span>
-
-          <button
-            disabled={safePage >= totalPages}
-            onClick={() => setPage(safePage + 1)}
-            className={`btn-ghost px-4 py-2 ${safePage >= totalPages ? "opacity-50 cursor-not-allowed" : ""}`}
-            aria-label="Next page"
-          >
-            Next
-          </button>
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {filtered.map((p) => (
+        <ProductCard key={p.slug} p={p} />
+      ))}
+      {!filtered.length && (
+        <div className="col-span-full text-white/70">
+          No products match your filters.
         </div>
       )}
-    </section>
+    </div>
   );
 }
