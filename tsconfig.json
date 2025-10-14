@@ -24,6 +24,11 @@
       ]
     },
     "forceConsistentCasingInFileNames": true,
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ],
     "plugins": [
       {
         "name": "next"
@@ -36,6 +41,7 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next"
   ]
 }

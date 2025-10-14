@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm ci",
+  "installCommand": "npm install --no-audit --no-fund",
   "buildCommand": "NEXT_DISABLE_ESLINT=1 NEXT_DISABLE_TYPECHECK=1 next build",
   "outputDirectory": ".next",
   "regions": ["iad1"]
