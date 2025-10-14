@@ -1,48 +1,103 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { products } from '@/data/products';
-import type { Metadata } from 'next';
+import LocaleLink from "@/app/components/LocaleLink";
+import { products, type ProductData } from "@/data/products";
 
-export const metadata: Metadata = {
-  title: 'Produits par catégorie | YOM Car Care',
-  description: 'Parcourez les produits YOM par catégorie.',
-  alternates: {
-    canonical: '/fr/products',
-    languages: { 'en': '/products' },
-  },
-};
+export const dynamic = "force-static";
 
-export default function FRCategoryPage({ params }: { params: { category: string } }) {
-  const list = products.filter(p => p.category === params.category);
+type Params = { params: { category: string } };
+
+function thumbOf(p: ProductData): string {
+  return p.img || (p.images && p.images[0]) || "";
+}
+
+function prettyCat(s: string) {
+  return s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+export default function CategoryPageFR({ params }: Params) {
+  const cat = params.category; // "exterior", "air-fresheners", etc.
+  const list = products.filter((p) => p.category === cat);
 
   return (
-    <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl md:text-3xl font-semibold mb-6">
-        {params.category.replace(/-/g, ' ')}
-      </h1>
+    <main className="container-px py-10">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[13px] uppercase tracking-widest text-white/60">Produits</p>
+          <h1 className="mt-1 text-2xl md:text-3xl font-semibold">{prettyCat(cat)}</h1>
+          <p className="mt-2 text-white/70 max-w-2xl">
+            Parcourez notre sélection {prettyCat(cat)}. Paiement à la livraison à Lubumbashi.
+          </p>
+        </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {list.map((p) => (
-          <Link
-            key={p.slug}
-            href={`/fr/products/${p.category}/${p.slug}`}
-            className="group rounded-2xl border border-white/10 overflow-hidden"
-          >
-            <div className="relative w-full aspect-square">
-              <Image src={p.image} alt={p.name} fill className="object-cover" sizes="25vw" />
-            </div>
-            <div className="p-3">
-              <div className="text-sm text-white/70 capitalize">{p.category.replace(/-/g, ' ')}</div>
-              <div className="font-medium group-hover:underline">{p.name}</div>
-            </div>
-          </Link>
-        ))}
+        <LocaleLink href="/products" className="btn-ghost">
+          Tous les produits
+        </LocaleLink>
       </div>
+
+      {list.length === 0 ? (
+        <div className="mt-10 rounded-2xl border border-white/10 bg-zinc-900/40 p-6">
+          <p className="text-white/80">Aucun produit trouvé pour cette catégorie.</p>
+          <div className="mt-4">
+            <LocaleLink href="/products" className="btn-primary">
+              Parcourir le catalogue
+            </LocaleLink>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {list.map((p) => {
+            const href = `/products/${p.category}/${p.slug}`;
+            const thumb = thumbOf(p);
+
+            return (
+              <LocaleLink
+                key={p.slug}
+                href={href}
+                className="group rounded-2xl border border-white/10 bg-zinc-900/40 hover:bg-zinc-900/60 transition overflow-hidden"
+              >
+                <div className="relative w-full aspect-square">
+                  {thumb ? (
+                    <img
+                      src={thumb}
+                      alt={p.name}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center text-white/40 text-sm">
+                      Image à venir
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3">
+                  <div className="text-sm text-white/70 capitalize">
+                    {p.category.replace(/-/g, " ")}
+                  </div>
+                  <div className="mt-1 font-medium leading-snug line-clamp-2">
+                    {p.name}
+                  </div>
+                  {p.price !== undefined && p.price !== null ? (
+                    <div className="mt-1 text-white/90 text-sm">
+                      {formatPrice(p.price, p.currency)}
+                    </div>
+                  ) : null}
+                </div>
+              </LocaleLink>
+            );
+          })}
+        </div>
+      )}
     </main>
   );
 }
 
-export async function generateStaticParams() {
-  const categories = Array.from(new Set(products.map(p => p.category)));
-  return categories.map(category => ({ category }));
+/* ---------------- helpers ---------------- */
+
+function formatPrice(price: number | string, currency?: string) {
+  const n = typeof price === "string" ? Number(price) : price;
+  if (!isFinite(n)) return String(price);
+  const cur = (currency || "USD").toUpperCase();
+  return cur === "USD"
+    ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+    : `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${cur}`;
 }
