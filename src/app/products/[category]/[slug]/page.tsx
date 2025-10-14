@@ -1,15 +1,51 @@
-import ProductPage from '../../_components/ProductPage';
-import { products } from '@/data/products';
-import { buildProductMetadata } from '../../_lib/productMetadata';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import ProductPage from "@/app/products/_components/ProductPage";
+import { products, type ProductData } from "@/data/products";
 
-export default function Page({ params }: { params: { category: string; slug: string } }) {
-  return <ProductPage params={params} />;
-}
+type Params = { category: string; slug: string };
 
-export function generateMetadata({ params }: { params: { category: string; slug: string } }) {
-  return buildProductMetadata(params.category, params.slug);
+function findProduct({ category, slug }: Params): ProductData | undefined {
+  return products.find((p) => p.category === category && p.slug === slug);
 }
 
 export async function generateStaticParams() {
-  return products.map(p => ({ category: p.category, slug: p.slug }));
+  return products.map((p) => ({ category: p.category, slug: p.slug }));
+}
+
+export async function generateMetadata(
+  { params }: { params: Params }
+): Promise<Metadata> {
+  const product = findProduct(params);
+  if (!product) return {};
+
+  const title = `${product.name} • YOM Car Care`;
+  const desc = `Buy ${product.name} in Lubumbashi. Cash on Delivery.`;
+  const canonical = `/products/${product.category}/${product.slug}`;
+
+  return {
+    title,
+    description: desc,
+    alternates: {
+      canonical,
+      languages: {
+        en: canonical,
+        fr: `/fr${canonical}`,
+      },
+    },
+    openGraph: {
+      title,
+      description: desc,
+      url: canonical,
+      siteName: "YOM Car Care",
+      type: "product",
+    },
+  };
+}
+
+export default function Page({ params }: { params: Params }) {
+  const product = findProduct(params);
+  if (!product) notFound();
+
+  return <ProductPage product={product} />;
 }
