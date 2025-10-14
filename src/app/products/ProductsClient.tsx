@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import ProductCard from "@/app/components/ProductCard"; // <- adjust if your path differs
+import ProductCard from "@/app/components/ProductCard"; // adjust if your path differs
 import { products, type ProductData, type Category } from "@/data/products";
 
 /** Build a thumbnail from either `img` or first `images[]` without type errors */
@@ -30,31 +30,42 @@ export default function ProductsClient() {
   const q = (searchParams?.get("q") || "").trim().toLowerCase();
   const cat = (searchParams?.get("category") || "") as Category | "";
   const size = searchParams?.get("size") || "";
-  const tag = searchParams?.get("tag") || ""; // string from query params
+  const tag = searchParams?.get("tag") || ""; // raw string from URL
   const min = searchParams?.get("min");
   const max = searchParams?.get("max");
   const sort = (searchParams?.get("sort") as SortKey) || "name_asc";
   const page = Math.max(1, Number(searchParams?.get("page") || 1));
   const pageSize = Math.max(1, Math.min(48, Number(searchParams?.get("ps") || 24)));
 
-  // ---- filtering + sorting (stable and defensive)
+  // ---- filtering + sorting
   const filtered = useMemo(() => {
-    const minNum = min != null ? Number(min) : null;
-    const maxNum = max != null ? Number(max) : null;
+    const parseNum = (v: string | null | undefined) => {
+      if (v == null) return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    const minNum = parseNum(min);
+    const maxNum = parseNum(max);
 
     let list = products.filter((p) => {
       if (cat && p.category !== cat) return false;
       if (size && p.size !== size) return false;
 
-      // Tag/badge comparison (defensive: treat all badges as strings)
+      // Tag/badge comparison (defensive: treat badges as strings)
       if (tag) {
         const badges = ((p as any)?.badges || []) as unknown[];
         const badgeStrings = badges.map((b) => String(b));
         if (!badgeStrings.includes(tag)) return false;
       }
 
-      if (minNum != null && (p.price ?? Infinity) < minNum) return false;
-      if (maxNum != null && (p.price ?? 0) > maxNum) return false;
+      // Coerce price for comparisons (p.price can be string | number | undefined)
+      const priceNum =
+        p.price == null
+          ? null
+          : Number(p.price as number | string);
+
+      if (minNum != null && ((priceNum ?? Infinity) < minNum)) return false;
+      if (maxNum != null && ((priceNum ?? 0) > maxNum)) return false;
 
       if (q) {
         const hay = `${p.name} ${p.slug} ${p.category} ${p.size || ""}`.toLowerCase();
@@ -108,7 +119,11 @@ export default function ProductsClient() {
       {/* Grid */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {pageItems.map((p) => (
-          <ProductCard key={p.slug} p={{ ...p, /* pass a thumb if your card needs it */ img: thumbOf(p) } as any} />
+          <ProductCard
+            key={p.slug}
+            // If your ProductCard needs an image prop, inject a safe thumb:
+            p={{ ...p, img: thumbOf(p) } as any}
+          />
         ))}
       </div>
 
