@@ -1,23 +1,25 @@
+// src/lib/gtag.ts
 "use client";
 
 declare global {
   interface Window {
     dataLayer: any[];
-    gtag: (...args: any[]) => void;
+    gtag?: (...args: any[]) => void;
   }
 }
 
-export const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
+export const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
 
+/** Safe wrapper around gtag that won't throw during SSR or when GA is missing */
 export function gtag(...args: any[]) {
   if (typeof window === "undefined" || !GA_ID) return;
   window.dataLayer = window.dataLayer || [];
-  window.gtag =
-    window.gtag ||
-    function () {
-      // @ts-expect-error - GA pushes arguments array
-      window.dataLayer.push(arguments as any);
+  // Initialize gtag once – pushes args into dataLayer
+  if (!window.gtag) {
+    window.gtag = (...a: any[]) => {
+      window.dataLayer.push(a);
     };
+  }
   window.gtag(...args);
 }
 
