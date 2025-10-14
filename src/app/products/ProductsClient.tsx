@@ -1,115 +1,143 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import ProductCard from '@/components/ProductCard'
-import Filters from '@/components/catalog/Filters'
-import { sortProducts, type SortKey } from '@/lib/catalog'
-import type { ProductData } from '@/data/products'
+import { useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import ProductCard from "@/app/components/ProductCard"; // <- adjust if your path differs
+import { products, type ProductData, type Category } from "@/data/products";
 
-const PAGE_SIZE = 12
+/** Build a thumbnail from either `img` or first `images[]` without type errors */
+function thumbOf(p: ProductData): string {
+  const anyP = p as any;
+  const img: string | undefined = anyP?.img;
+  const firstFromImages: string | undefined =
+    Array.isArray(anyP?.images) && anyP.images.length ? anyP.images[0] : undefined;
+  return img || firstFromImages || "";
+}
 
-export default function ProductsClient({
-  items,
-  currentCategory = null,
-}: {
-  items: ProductData[]
-  currentCategory?: string | null
-}) {
-  const params = useSearchParams()
-  const router = useRouter()
-  const pathname = usePathname()
+/** Pretty print category slug */
+function prettyCat(s: string) {
+  return s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
 
-  const sort = (params.get('sort') as SortKey) || 'name-asc'
-  const page = Math.max(1, parseInt(params.get('page') || '1', 10))
+type SortKey = "name_asc" | "name_desc";
 
-  // Apply filters
+export default function ProductsClient() {
+  const pathname = usePathname() || "/products";
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // ---- read filters from URL
+  const q = (searchParams?.get("q") || "").trim().toLowerCase();
+  const cat = (searchParams?.get("category") || "") as Category | "";
+  const size = searchParams?.get("size") || "";
+  const tag = searchParams?.get("tag") || ""; // string from query params
+  const min = searchParams?.get("min");
+  const max = searchParams?.get("max");
+  const sort = (searchParams?.get("sort") as SortKey) || "name_asc";
+  const page = Math.max(1, Number(searchParams?.get("page") || 1));
+  const pageSize = Math.max(1, Math.min(48, Number(searchParams?.get("ps") || 24)));
+
+  // ---- filtering + sorting (stable and defensive)
   const filtered = useMemo(() => {
-    const cat = currentCategory || params.get('cat') || ''
-    const size = params.get('size') || ''
-    const tag = params.get('tag') || ''
-    const min = params.get('min') ? Number(params.get('min')) : null
-    const max = params.get('max') ? Number(params.get('max')) : null
+    const minNum = min != null ? Number(min) : null;
+    const maxNum = max != null ? Number(max) : null;
 
-    return items.filter(p => {
-      if (cat && p.category !== cat) return false
-      if (size && p.size !== size) return false
-      if (tag && !(p.badges || []).includes(tag)) return false
-      if (min != null && (p.price ?? Infinity) < min) return false
-      if (max != null && (p.price ?? 0) > max) return false
-      return true
-    })
-  }, [items, params, currentCategory])
+    let list = products.filter((p) => {
+      if (cat && p.category !== cat) return false;
+      if (size && p.size !== size) return false;
 
-  const sorted = useMemo(() => sortProducts(filtered, sort), [filtered, sort])
+      // Tag/badge comparison (defensive: treat all badges as strings)
+      if (tag) {
+        const badges = ((p as any)?.badges || []) as unknown[];
+        const badgeStrings = badges.map((b) => String(b));
+        if (!badgeStrings.includes(tag)) return false;
+      }
 
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
-  const pageItems = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+      if (minNum != null && (p.price ?? Infinity) < minNum) return false;
+      if (maxNum != null && (p.price ?? 0) > maxNum) return false;
 
-  function setParam(key: string, value: string) {
-    const p = new URLSearchParams(params.toString())
-    p.set(key, value)
-    if (key !== 'page') p.set('page', '1') // reset to first page on new sort/filter
-    router.replace(`${pathname}?${p.toString()}`, { scroll: false })
-  }
+      if (q) {
+        const hay = `${p.name} ${p.slug} ${p.category} ${p.size || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    // sort
+    list = [...list].sort((a, b) => {
+      const cmp = a.name.localeCompare(b.name);
+      return sort === "name_desc" ? -cmp : cmp;
+    });
+
+    return list;
+  }, [q, cat, size, tag, min, max, sort]);
+
+  // ---- pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const pageItems = filtered.slice(start, start + pageSize);
+
+  const setPage = (next: number) => {
+    const sp = new URLSearchParams(searchParams?.toString());
+    sp.set("page", String(next));
+    router.push(`${pathname}?${sp.toString()}`);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="grid gap-6 md:grid-cols-[260px_1fr]">
-      <Filters products={items} currentCategory={currentCategory} />
+    <section className="container-px py-8">
+      <header className="mb-4">
+        <p className="text-[13px] uppercase tracking-widest text-white/60">Products</p>
+        <h1 className="mt-1 text-2xl md:text-3xl font-semibold">
+          {cat ? prettyCat(cat) : "All Products"}
+        </h1>
+        <p className="mt-2 text-white/70">
+          Showing {filtered.length} item{filtered.length === 1 ? "" : "s"}
+          {q ? (
+            <>
+              {" "}
+              for search "<span className="text-white">{q}</span>"
+            </>
+          ) : null}
+        </p>
+      </header>
 
-      <section>
-        {/* Sort + count */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div className="text-white/80">
-            {sorted.length} item{sorted.length !== 1 ? 's' : ''} found
-          </div>
-          <div>
-            <label className="mr-2 text-sm text-white/70">Sort</label>
-            <select
-              className="input"
-              value={sort}
-              onChange={(e) => setParam('sort', e.target.value)}
-            >
-              <option value="name-asc">Name (A–Z)</option>
-              <option value="name-desc">Name (Z–A)</option>
-              <option value="price-asc">Price (Low → High)</option>
-              <option value="price-desc">Price (High → Low)</option>
-            </select>
-          </div>
+      {/* Grid */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {pageItems.map((p) => (
+          <ProductCard key={p.slug} p={{ ...p, /* pass a thumb if your card needs it */ img: thumbOf(p) } as any} />
+        ))}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2">
+          <button
+            disabled={safePage <= 1}
+            onClick={() => setPage(safePage - 1)}
+            className={`btn-ghost px-4 py-2 ${safePage <= 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+            aria-label="Previous page"
+          >
+            Prev
+          </button>
+
+          <span className="text-white/70 text-sm">
+            Page {safePage} of {totalPages}
+          </span>
+
+          <button
+            disabled={safePage >= totalPages}
+            onClick={() => setPage(safePage + 1)}
+            className={`btn-ghost px-4 py-2 ${safePage >= totalPages ? "opacity-50 cursor-not-allowed" : ""}`}
+            aria-label="Next page"
+          >
+            Next
+          </button>
         </div>
-
-        {/* Grid */}
-        <div className="mt-4 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {pageItems.map(p => <ProductCard key={p.slug} p={p} />)}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 ? (
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const n = i + 1
-              const active = n === page
-              const p = new URLSearchParams(params.toString())
-              p.set('page', String(n))
-              return (
-                <button
-                  key={n}
-                  className={`rounded-lg border px-3 py-1.5 ${
-                    active
-                      ? 'border-white/30 bg-white/10'
-                      : 'border-white/10 bg-zinc-900/40 hover:bg-zinc-900/60'
-                  }`}
-                  onClick={() =>
-                    router.replace(`${pathname}?${p.toString()}`, { scroll: false })
-                  }
-                >
-                  {n}
-                </button>
-              )
-            })}
-          </div>
-        ) : null}
-      </section>
-    </div>
-  )
+      )}
+    </section>
+  );
 }
