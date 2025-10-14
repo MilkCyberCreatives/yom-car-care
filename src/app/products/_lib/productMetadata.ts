@@ -1,16 +1,25 @@
+// src/app/products/_lib/productMetadata.ts
 import type { Metadata } from "next";
 import { products, type ProductData } from "@/data/products";
 
-/** Some products still use a legacy `img` field. Support both. */
-type ProductWithLegacy = ProductData & { img?: string };
+/**
+ * Some older items may still have `img` or `description` fields.
+ * Widen locally so we can read them safely without breaking ProductData.
+ */
+type ProductWithLegacy = ProductData & {
+  img?: string;
+  description?: string;
+};
 
-function thumbOf(p?: ProductWithLegacy): string | "" {
-  return p?.images?.[0] ?? p?.img ?? "";
+function primaryImage(p?: ProductWithLegacy): string | undefined {
+  return p?.images?.[0] ?? p?.img ?? undefined;
 }
 
 /**
- * Build Next.js <Metadata> for a product page using fields that exist on ProductData
- * (plus legacy `img` if present).
+ * Build Metadata for a product page.
+ * - Safe against legacy fields
+ * - Locale-aware canonicals
+ * - Uses allowed OpenGraph type ("website")
  */
 export function buildProductMetadata(
   category: string,
@@ -21,21 +30,27 @@ export function buildProductMetadata(
     (p) => p.category === category && p.slug === slug
   ) as ProductWithLegacy | undefined;
 
-  const title = product
-    ? `${product.name} • YOM Car Care`
-    : "Product • YOM Car Care";
+  const baseTitle = product ? product.name : "Product";
+  const title = `${baseTitle} • YOM Car Care`;
 
-  const description = product
-    ? locale === "fr"
-      ? `Achetez ${product.name} à Lubumbashi. Paiement à la livraison.`
-      : `Buy ${product.name} in Lubumbashi. Cash on Delivery.`
-    : "Explore YOM Car Care products.";
+  const fallbackDesc =
+    locale === "fr"
+      ? "Explorez les produits YOM Car Care à Lubumbashi. Paiement à la livraison."
+      : "Explore YOM Car Care products in Lubumbashi. Cash on Delivery.";
 
-  // Locale-aware canonical path
+  const description =
+    product?.description ??
+    (product
+      ? locale === "fr"
+        ? `Achetez ${product.name} à Lubumbashi. Paiement à la livraison.`
+        : `Buy ${product.name} in Lubumbashi. Cash on Delivery.`
+      : fallbackDesc);
+
+  // Locale-aware canonical
   const path = `/products/${category}/${slug}`;
   const canonical = locale === "fr" ? `/fr${path}` : path;
 
-  const img = thumbOf(product);
+  const img = primaryImage(product);
   const images = img ? [img] : [];
 
   return {
@@ -53,7 +68,6 @@ export function buildProductMetadata(
       description,
       url: canonical,
       siteName: "YOM Car Care",
-      // Keep to allowed types for Next Metadata
       type: "website",
       images,
     },
