@@ -7,6 +7,8 @@ import BrandBar from "./components/BrandBar";
 import CTABanner from "./components/CTABanner";
 import FAQ from "./components/FAQ";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+import MostPurchased from "./components/MostPurchased";
+import { featuredHome } from "@/data/featured";
 
 export const metadata = {
   title: "YOM Car Care — Car Care Products in Lubumbashi (Cash on Delivery)",
@@ -25,13 +27,20 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
-      {/* TopBar + MainHeader come from layout.tsx (no breadcrumb on home) */}
       <Hero />
       <CategoryStrip />
-      <FeaturedProducts />
+
+      {/* ✅ driven by featuredHome */}
+      <FeaturedProducts
+        heading="Featured Products"
+        products={featuredHome}
+        viewAllHref="/products"
+      />
+
       <Benefits />
       <BrandBar />
       <CTABanner />
+      <MostPurchased />
       <FAQ />
       <FloatingWhatsApp />
     </>

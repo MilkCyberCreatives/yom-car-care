@@ -1,49 +1,33 @@
-// src/app/components/FeaturedProducts.tsx
+// src/app/components/MostPurchased.tsx
 "use client";
 
 import Link from "@/app/components/LocaleLink";
 import { ShoppingCart } from "lucide-react";
 import useLocaleLink from "@/hooks/useLocaleLink";
-import { featuredHome, type FPItem } from "@/data/featured";
+import { mostPurchasedHome, type MPItem } from "@/data/mostPurchased";
 
-/** Accept both FPItem and legacy shapes from earlier code */
-type LegacyItem = {
-  slug?: string;
-  title?: string;
-  name?: string;
-  image?: string;
-  img?: string;
-  price?: number | string;
-  currency?: "USD" | "CDF" | string;
-  category?: string;
-  categorySlug?: string;
-  href?: string;
-  badge?: string | React.ReactNode;
-};
-
-type AnyItem = FPItem | LegacyItem;
-
-export default function FeaturedProducts({
-  heading = "Featured Products",
+export default function MostPurchased({
+  heading = "Most Purchased",
   products,
   viewAllHref = "/products",
 }: {
   heading?: string;
-  products?: AnyItem[] | unknown; // be lenient at the boundary
+  products?: MPItem[] | unknown; // be lenient at the boundary
   viewAllHref?: string;
 }) {
   const { l } = useLocaleLink();
 
   // ✅ Never crash on undefined/null or wrong shape
-  const rawList: AnyItem[] =
-    (Array.isArray(products) ? (products as AnyItem[]) : featuredHome) ?? [];
-  const list = rawList.map(normalize);
+  const list: MPItem[] =
+    (Array.isArray(products) ? (products as MPItem[]) : mostPurchasedHome) ?? [];
 
   return (
     <section className="container-px my-14">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-[13px] uppercase tracking-widest text-white/60">Our picks</p>
+          <p className="text-[13px] uppercase tracking-widest text-white/60">
+            Best sellers: to try now!
+          </p>
           <h2 className="mt-1 text-2xl md:text-3xl font-semibold">{heading}</h2>
         </div>
 
@@ -61,20 +45,16 @@ export default function FeaturedProducts({
 
             return (
               <article
-                key={p.slug || `feat-${idx}`}
+                key={p.slug || `mp-${idx}`}
                 className="rounded-2xl border border-white/10 bg-zinc-900/40 hover:bg-zinc-900/60 transition"
               >
                 {/* IMAGE + BADGE */}
                 <div className="relative rounded-t-2xl overflow-hidden bg-black/15">
                   {p.badge ? (
                     <div className="absolute top-2 right-2 z-10">
-                      {typeof p.badge === "string" ? (
-                        <span className="text-xs rounded-md bg-white/10 px-2 py-1 backdrop-blur">
-                          {p.badge}
-                        </span>
-                      ) : (
-                        p.badge
-                      )}
+                      <span className="text-xs rounded-md bg-white/10 px-2 py-1 backdrop-blur">
+                        {p.badge}
+                      </span>
                     </div>
                   ) : null}
 
@@ -126,51 +106,10 @@ export default function FeaturedProducts({
   );
 }
 
-/* ---------------- helpers ---------------- */
-
-function normalize(item: AnyItem): FPItem {
-  const maybe = item as FPItem;
-  if (maybe && "name" in maybe && "img" in maybe) return maybe;
-
-  const legacy = item as LegacyItem;
-
-  const name = legacy.name ?? legacy.title ?? "Product";
-  const img = legacy.img ?? legacy.image ?? "";
-  const categoryRaw =
-    legacy.category ??
-    (legacy.categorySlug
-      ? legacy.categorySlug.split("/").filter(Boolean).pop()
-      : undefined) ??
-    "accessories";
-
-  const category =
-    categoryRaw === "exterior" ||
-    categoryRaw === "interior" ||
-    categoryRaw === "detailing" ||
-    categoryRaw === "accessories"
-      ? (categoryRaw as FPItem["category"])
-      : "accessories";
-
-  const priceRaw = legacy.price;
-  const price =
-    typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
-
-  return {
-    slug:
-      legacy.slug ??
-      name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
-    name,
-    img,
-    price,
-    currency: (legacy.currency as FPItem["currency"]) ?? "USD",
-    category,
-    href: legacy.href,
-    badge: legacy.badge as FPItem["badge"],
-  };
-}
+/* ------------- helpers ------------- */
 
 function prettyCat(
-  c: FPItem["category"]
+  c: MPItem["category"]
 ): "Exterior" | "Interior" | "Detailing" | "Accessories" | "—" {
   switch (c) {
     case "exterior": return "Exterior";
