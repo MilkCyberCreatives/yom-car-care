@@ -1,41 +1,37 @@
-// lib/products.ts
-export * from "@/app/data/products";
+import { ProductData } from '@/data/products';
 
 export type Product = {
   slug: string;
-  category: 'exterior' | 'interior' | 'air-fresheners' | 'detailing' | 'accessories';
-  name: string;
+  title: string;
+  price: number;
+  image: string;
+  category: string;
   description?: string;
-  price?: number;
-  currency?: string;
-  images?: string[];
-  sku?: string;
-  brand?: string;
 };
 
-const PRODUCTS: Product[] = [
-  // ↓ Add/replace with your real products
-  { slug: 'shield-snow-foam-1l', category: 'exterior', name: 'Shield Snow Foam 1L', price: 12.99, currency: 'USD', images: ['/images/snow-foam.jpg'], brand: 'Shield', sku: 'SNOW-FOAM-1L' },
-  { slug: 'shield-splash-car-shampoo-500ml', category: 'exterior', name: 'Splash Car Shampoo 500ml', price: 8.99, currency: 'USD', images: ['/images/shampoo.jpg'], brand: 'Shield', sku: 'SPLASH-500' },
-  // ... add the rest shown in your logs
-];
-
-export async function getAllProducts(): Promise<Product[]> {
-  return PRODUCTS;
+function uniqBy<T, K extends keyof any>(arr: T[], key: (t: T) => K) {
+  const map = new Map<K, T>();
+  for (const item of arr) map.set(key(item), item);
+  return Array.from(map.values());
 }
 
-export async function getProductsByCategory(category: Product['category']): Promise<Product[]> {
-  return PRODUCTS.filter(p => p.category === category);
+export function allProducts(): Product[] {
+  // Your data file exposes arrays like: featuredHome, mostPurchased.
+  // Merge them safely. If you have more arrays in future, add them here.
+  const pools = [
+    ...(ProductData.featuredHome ?? []),
+    ...(ProductData.mostPurchased ?? []),
+  ] as Product[];
+
+  return uniqBy(pools, (p) => p.slug);
 }
 
-export async function getProduct(category: Product['category'], slug: string): Promise<Product | null> {
-  return PRODUCTS.find(p => p.category === category && p.slug === slug) ?? null;
+export function getProductBySlug(slug: string): Product | undefined {
+  return allProducts().find((p) => p.slug === slug);
 }
 
-export const ALL_CATEGORIES: Product['category'][] = [
-  'exterior',
-  'interior',
-  'air-fresheners',
-  'detailing',
-  'accessories',
-];
+export function getRelatedByCategory(category: string, excludeSlug: string, limit = 4): Product[] {
+  return allProducts()
+    .filter(p => p.category === category && p.slug !== excludeSlug)
+    .slice(0, limit);
+}

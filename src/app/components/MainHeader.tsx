@@ -100,7 +100,7 @@ export default function MainHeader() {
 
         {/* Mobile toggle */}
         <button
-          className="lg:hidden p-2 rounded-md bg-white/15 hover:bg.white/25"
+          className="lg:hidden p-2 rounded-md bg-white/15 hover:bg-white/25"
           onClick={() => setMobileOpen(true)}
           aria-label="Open menu"
           type="button"
@@ -136,7 +136,7 @@ export default function MainHeader() {
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={`block rounded-lg px-3 py-2 text-base ${
-                    isActive(item.href) ? "bg-white/10 text.white" : "text-white/85 hover:bg-white/5"
+                    isActive(item.href) ? "bg-white/10 text-white" : "text-white/85 hover:bg-white/5"
                   }`}
                   aria-current={isActive(item.href) ? "page" : undefined}
                 >
