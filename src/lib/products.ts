@@ -3,54 +3,75 @@ import {
   allProducts as _allProducts,
   products as _products,
   categories as _CATEGORIES,
-  type ProductData,
   firstImage as _firstImage,
   getByCategory as _getByCategory,
+  type ProductData,
 } from "@/data/products";
 
-// Re-export the canonical product type that pages can import from here.
+/** Canonical product type to import from this module */
 export type Product = ProductData;
 
-// Categories constant some pages expect
+/** Public categories constant */
 export const ALL_CATEGORIES = _CATEGORIES;
 
-/** Safe getter for the full product list */
+/** Return the master list (prefers allProducts if present) */
 export function getAllProducts(): Product[] {
-  // Prefer allProducts if present, otherwise fall back to products
   return Array.isArray(_allProducts) && _allProducts.length ? _allProducts : _products;
 }
 
-/** Get one product by slug */
-export function getProduct(slug: string): Product | undefined {
-  return getAllProducts().find((p) => p.slug === slug);
-}
-
-/** Get products by typed category */
+/** Get products by category */
 export function getProductsByCategory(category: Product["category"]): Product[] {
-  // Use data-layer helper if available; otherwise filter locally
   if (typeof _getByCategory === "function") return _getByCategory(category) as Product[];
   return getAllProducts().filter((p) => p.category === category);
 }
 
-/** Return just the slugs (useful for SSG params) */
+/** Get one product by slug */
+export function getProductBySlug(slug: string): Product | undefined {
+  return getAllProducts().find((p) => p.slug === slug);
+}
+
+/**
+ * Get one product.
+ * Overloads:
+ *  - getProduct(slug)
+ *  - getProduct(category, slug)  // category is ignored for lookup but kept for backwards-compat
+ */
+export function getProduct(slug: string): Product | undefined;
+export function getProduct(category: Product["category"], slug: string): Product | undefined;
+export function getProduct(a: any, b?: any): Product | undefined {
+  const slug = typeof b === "string" ? b : a;
+  return getProductBySlug(slug);
+}
+
+/** Slug list (for SSG params) */
 export function getSlugs(): string[] {
   return getAllProducts().map((p) => p.slug).filter(Boolean);
 }
 
-/** Thumbnail resolver with a safe fallback */
+/** Small related-items helper */
+export function getRelatedByCategory(
+  category: Product["category"],
+  excludeSlug?: string,
+  limit = 8
+): Product[] {
+  const list = getProductsByCategory(category).filter((p) => p.slug !== excludeSlug);
+  return list.slice(0, limit);
+}
+
+/** Thumbnail resolver with fallback */
 export function firstImage(p: Product): string {
   if (typeof _firstImage === "function") return _firstImage(p);
   return p.images?.[0] ?? p.img ?? "/products/placeholder.jpg";
 }
 
-/** Basic count per category */
+/** Counts per category */
 export function countByCategory(): Record<Product["category"], number> {
   const counts = Object.fromEntries(_CATEGORIES.map((c) => [c, 0])) as Record<Product["category"], number>;
   for (const p of getAllProducts()) counts[p.category]++;
   return counts;
 }
 
-/** Slug helpers (mirror what your pages use) */
+/** Category slug utilities */
 export function toCategorySlug(input: string) {
   return input
     .toLowerCase()
