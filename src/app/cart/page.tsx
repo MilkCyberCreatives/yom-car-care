@@ -12,7 +12,7 @@ import Link from "next/link";
 // Example: dynamic(() => import("./CartClient"), { ssr: false })
 // If you don't have one yet, this file will just show a friendly placeholder.
 
-const CartClient = dynamic(() => import("./CartClient").catch(() => null), {
+const CartClient = dynamic(() => import("../cart/CartClient").catch(() => null), {
   ssr: false,
   // You can optionally show a tiny skeleton while the client loads:
   loading: () => (
