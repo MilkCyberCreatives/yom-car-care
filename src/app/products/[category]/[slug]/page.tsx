@@ -19,7 +19,6 @@ type Params = {
 
 /* -------------------- SSG -------------------- */
 export async function generateStaticParams() {
-  // Build params from the canonical product list
   const all = getAllProducts();
   return all.map((p) => ({
     category: p.category.replace(/[^a-z0-9]+/gi, "-").toLowerCase(),
@@ -32,17 +31,16 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  // Our getProduct overload supports (slug) and (category, slug)
+  // Supports both signatures: getProduct(slug) and getProduct(category, slug)
   const product = getProduct(params.slug) || getProduct(params.category as any, params.slug);
 
   const title = product ? product.name : "Product";
   const description =
-    product?.description ??
-    "Product details and specifications.";
+    product?.description ?? "Product details and specifications.";
   const images =
-    (product?.images && product.images.length > 0 ? product.images : ["/products/placeholder.jpg"]) as
-      | string[]
-      | undefined;
+    (product?.images && product.images.length > 0
+      ? product.images
+      : ["/products/placeholder.jpg"]) as string[];
 
   const url = `https://your-domain.com/products/${params.category}/${params.slug}`;
 
@@ -54,8 +52,8 @@ export async function generateMetadata({
       title,
       description,
       url,
-      images,
-      type: "product",
+      images,          // strings are valid for OG images
+      type: "website", // <-- fix: "product" is not a valid union; use "website"
     },
     twitter: {
       card: "summary_large_image",
@@ -83,7 +81,11 @@ export default function ProductDetailPage({ params }: { params: Params }) {
       {/* Breadcrumbs */}
       <div className="mb-6 text-sm text-gray-600">
         <Link href="/">Home</Link> <span className="mx-1">/</span>
-        <Link href={`/products/${product.category.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`}>
+        <Link
+          href={`/products/${product.category
+            .replace(/[^a-z0-9]+/gi, "-")
+            .toLowerCase()}`}
+        >
           {product.category}
         </Link>{" "}
         <span className="mx-1">/</span>
@@ -159,7 +161,7 @@ export default function ProductDetailPage({ params }: { params: Params }) {
         <section className="mt-12">
           <h2 className="text-xl font-semibold mb-4">Related products</h2>
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {related.map((rp, i) => (
+            {related.map((rp) => (
               <li
                 key={rp.slug}
                 className="group rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 text-white"
@@ -182,7 +184,9 @@ export default function ProductDetailPage({ params }: { params: Params }) {
                       Public
                     </span>
                     <Link
-                      href={`/products/${rp.category.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}/${rp.slug}`}
+                      href={`/products/${rp.category
+                        .replace(/[^a-z0-9]+/gi, "-")
+                        .toLowerCase()}/${rp.slug}`}
                       className="text-sm font-semibold underline"
                     >
                       view
