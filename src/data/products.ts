@@ -24,6 +24,8 @@ export type ProductData = {
   currency?: "USD" | "CDF" | string;
   /** Use an array for UI badges */
   badges?: Badge[];
+  /** Optional: used by product detail + metadata */
+  description?: string;
 };
 
 // ---------- Category aliases ----------
@@ -33,12 +35,7 @@ const air: Category = "air-fresheners";
 const det: Category = "detailing";
 const acc: Category = "accessories";
 
-// ---------- Helpers ----------
-/**
- * Build image paths from /public/products.
- * If you only have one image per product, just ensure `/public/products/<slug>.jpg` exists.
- * Add more extensions if needed (e.g., .png or .webp).
- */
+// ---------- Helper ----------
 function imgs(slug: string, extra: string[] = []): string[] {
   const base = `/products/${slug}.jpg`;
   return [base, ...extra];
@@ -49,7 +46,7 @@ export function firstImage(p: ProductData): string {
   return p.images?.[0] ?? p.img ?? "/products/placeholder.jpg";
 }
 
-// ---------- Data (seed with local /public/products images) ----------
+// ---------- Product Data ----------
 export const products: ProductData[] = [
   // ===== EXTERIOR =====
   {
@@ -61,6 +58,8 @@ export const products: ProductData[] = [
     price: 9.5,
     currency: "USD",
     badges: ["bestseller"],
+    description:
+      "A thick foaming pre-wash formula that safely removes dirt and grime before contact washing.",
   },
   {
     slug: "shield-splash-car-shampoo-500ml",
@@ -71,6 +70,8 @@ export const products: ProductData[] = [
     price: 6.9,
     currency: "USD",
     badges: ["popular"],
+    description:
+      "High-suds shampoo designed for a spotless, streak-free shine on all paint finishes.",
   },
   {
     slug: "shield-quick-detailer-500ml",
@@ -80,6 +81,8 @@ export const products: ProductData[] = [
     images: imgs("shield-quick-detailer-500ml"),
     price: 7.5,
     currency: "USD",
+    description:
+      "Instant gloss booster and dust remover for maintaining your vehicle between washes.",
   },
 
   // ===== INTERIOR =====
@@ -91,6 +94,8 @@ export const products: ProductData[] = [
     images: imgs("shield-leather-care-400ml"),
     price: 7.8,
     currency: "USD",
+    description:
+      "Nourishes, protects, and restores genuine and synthetic leather surfaces.",
   },
   {
     slug: "interior-cleaner-500ml",
@@ -100,6 +105,8 @@ export const products: ProductData[] = [
     images: imgs("interior-cleaner-500ml"),
     price: 6.2,
     currency: "USD",
+    description:
+      "Safe, all-purpose cleaner for dashboards, consoles, vinyl, and fabric.",
   },
 
   // ===== AIR FRESHENERS =====
@@ -110,6 +117,8 @@ export const products: ProductData[] = [
     images: imgs("monster-fresh-ocean"),
     price: 2.5,
     currency: "USD",
+    description:
+      "Invigorating ocean fragrance that keeps your car interior smelling fresh for weeks.",
   },
   {
     slug: "monster-fresh-vanilla",
@@ -118,6 +127,8 @@ export const products: ProductData[] = [
     images: imgs("monster-fresh-vanilla"),
     price: 2.5,
     currency: "USD",
+    description:
+      "Classic vanilla aroma with a long-lasting scent profile suitable for any vehicle.",
   },
 
   // ===== DETAILING =====
@@ -129,6 +140,8 @@ export const products: ProductData[] = [
     images: imgs("shield-sheen-silicone-500ml"),
     price: 6.9,
     currency: "USD",
+    description:
+      "Professional-grade silicone dressing that leaves plastics and trims with a deep gloss finish.",
   },
   {
     slug: "clay-bar-kit",
@@ -137,6 +150,8 @@ export const products: ProductData[] = [
     images: imgs("clay-bar-kit"),
     price: 12.0,
     currency: "USD",
+    description:
+      "Removes embedded contaminants from paintwork to restore a smooth, mirror-like surface.",
   },
 
   // ===== ACCESSORIES =====
@@ -147,6 +162,8 @@ export const products: ProductData[] = [
     images: imgs("shield-standard-sponge"),
     price: 1.2,
     currency: "USD",
+    description:
+      "Durable, multi-use sponge ideal for washing bodywork and wheels.",
   },
   {
     slug: "microfiber-towel-pack",
@@ -155,9 +172,9 @@ export const products: ProductData[] = [
     images: imgs("microfiber-towel-pack"),
     price: 4.5,
     currency: "USD",
+    description:
+      "Set of ultra-soft microfiber towels for drying, buffing, and interior cleaning.",
   },
-
-  // 👉 Add/rename items freely — just place matching images in /public/products/
 ];
 
 // ---------- Category utilities ----------
@@ -186,10 +203,6 @@ export function countByCategory() {
 }
 
 // ---------- Home sections & master list ----------
-/**
- * You can hand-pick these or leave as slices for now.
- * They’re kept as arrays because other parts of the app already expect them.
- */
 export const featuredHome: ProductData[] = products.slice(0, 4);
 export const mostPurchased: ProductData[] = products.slice(4, 8);
 
