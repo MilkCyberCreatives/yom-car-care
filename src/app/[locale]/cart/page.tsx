@@ -7,13 +7,9 @@ import type { Metadata } from "next";
 import NextDynamic from "next/dynamic";
 import Link from "next/link";
 
-// ✅ Use absolute alias to the shared client cart component
-// Make sure your tsconfig/jsconfig has: { "compilerOptions": { "baseUrl": "src", "paths": { "@/*": ["*"] } } }
+// Use a RELATIVE path from [locale]/cart -> cart/CartClient
 const CartClient = NextDynamic(
-  () =>
-    import("@/app/cart/CartClient")
-      .then((m) => m.default)
-      .catch(() => null),
+  () => import("../../cart/CartClient"),
   {
     ssr: false,
     loading: () => (
@@ -40,21 +36,13 @@ export default function LocaleCartPage() {
         </p>
       </header>
 
-      {CartClient ? (
-        <CartClient />
-      ) : (
-        <div className="rounded-2xl border border-gray-200 p-6">
-          <p className="text-gray-700">
-            Cart UI not found. Create{" "}
-            <code className="font-mono">src/app/cart/CartClient.tsx</code> and it will load here automatically.
-          </p>
-          <div className="mt-4">
-            <Link href="/products" className="underline">
-              Continue shopping
-            </Link>
-          </div>
-        </div>
-      )}
+      <CartClient />
+
+      <div className="mt-6">
+        <Link href="/products" className="underline">
+          Continue shopping
+        </Link>
+      </div>
     </main>
   );
 }

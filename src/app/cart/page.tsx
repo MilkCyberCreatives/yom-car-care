@@ -5,13 +5,12 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import type { Metadata } from "next";
-// ⚠️ avoid name clash with exported `dynamic`
+// Avoid name clash with exported `dynamic`
 import NextDynamic from "next/dynamic";
 import Link from "next/link";
 
-// Because CartClient.tsx sits in the same folder as this page,
-// use a relative path: "./CartClient"
-const CartClient = NextDynamic(() => import("./CartClient").catch(() => null), {
+// CartClient sits in the SAME folder
+const CartClient = NextDynamic(() => import("./CartClient"), {
   ssr: false,
   loading: () => (
     <div className="container-px py-12 text-gray-600">
@@ -36,21 +35,13 @@ export default function CartPage() {
         </p>
       </header>
 
-      {CartClient ? (
-        <CartClient />
-      ) : (
-        <div className="rounded-2xl border border-gray-200 p-6">
-          <p className="text-gray-700">
-            Cart UI not found. Create{" "}
-            <code className="font-mono">src/app/cart/CartClient.tsx</code> and it will load here automatically.
-          </p>
-          <div className="mt-4">
-            <Link href="/products" className="underline">
-              Continue shopping
-            </Link>
-          </div>
-        </div>
-      )}
+      <CartClient />
+
+      <div className="mt-6">
+        <Link href="/products" className="underline">
+          Continue shopping
+        </Link>
+      </div>
     </main>
   );
 }
