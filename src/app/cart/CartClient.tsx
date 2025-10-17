@@ -3,24 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-/**
- * Lightweight client-only cart placeholder.
- * Replace this with your real cart UI when your CartProvider is ready.
- */
 type CartItem = { id: string; name: string; qty: number };
 
 export default function CartClient() {
   const [items, setItems] = useState<CartItem[] | null>(null);
 
-  // Demo: read from localStorage if you want a quick test.
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
-      if (raw) {
-        setItems(JSON.parse(raw));
-      } else {
-        setItems([]);
-      }
+      setItems(raw ? JSON.parse(raw) : []);
     } catch {
       setItems([]);
     }
@@ -32,7 +23,7 @@ export default function CartClient() {
         Loading cart…
       </div>
     );
-    }
+  }
 
   if (items.length === 0) {
     return (

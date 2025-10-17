@@ -1,32 +1,32 @@
-// src/app/cart/page.tsx
+// src/app/[locale]/cart/page.tsx
 
-// Render on the client; avoid prerender/provider issues
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import type { Metadata } from "next";
-// ⚠️ avoid name clash with exported `dynamic`
 import NextDynamic from "next/dynamic";
 import Link from "next/link";
 
-// Because CartClient.tsx sits in the same folder as this page,
-// use a relative path: "./CartClient"
-const CartClient = NextDynamic(() => import("./CartClient").catch(() => null), {
-  ssr: false,
-  loading: () => (
-    <div className="container-px py-12 text-gray-600">
-      <div className="mb-4 h-6 w-40 rounded bg-gray-200" />
-      <div className="h-24 w-full rounded-2xl border border-gray-200" />
-    </div>
-  ),
-});
+// Absolute import to reuse the same client component
+const CartClient = NextDynamic(
+  () => import("../cart/CartClient").then((m) => m.default).catch(() => null),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="container-px py-12 text-gray-600">
+        <div className="mb-4 h-6 w-40 rounded bg-gray-200" />
+        <div className="h-24 w-full rounded-2xl border border-gray-200" />
+      </div>
+    ),
+  }
+);
 
 export const metadata: Metadata = {
   title: "Your Cart | YOM Car Care",
   description: "Review items in your shopping cart.",
 };
 
-export default function CartPage() {
+export default function LocaleCartPage() {
   return (
     <main className="container-px py-8">
       <header className="mb-6">
