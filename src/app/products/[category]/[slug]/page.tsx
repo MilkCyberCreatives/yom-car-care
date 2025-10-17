@@ -1,106 +1,199 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { getProductBySlug, getRelatedByCategory } from '@/lib/products';
-import AddToCartButton from '@/components/AddToCartButton';
-import { motion } from 'framer-motion';
+// src/app/products/[category]/[slug]/page.tsx
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  getAllProducts,
+  getProduct,
+  getRelatedByCategory,
+  firstImage,
+  type Product,
+} from "@/lib/products";
 
-type Props = {
-  params: { category: string; slug: string };
+/* -------------------- Types -------------------- */
+type Params = {
+  category: string;
+  slug: string;
 };
 
-export function generateStaticParams() {
-  // Optionally generate at build if you later adopt static generation
-  return [];
+/* -------------------- SSG -------------------- */
+export async function generateStaticParams() {
+  // Build params from the canonical product list
+  const all = getAllProducts();
+  return all.map((p) => ({
+    category: p.category.replace(/[^a-z0-9]+/gi, "-").toLowerCase(),
+    slug: p.slug,
+  }));
 }
 
-export default function ProductPage({ params }: Props) {
-  const product = getProductBySlug(params.slug);
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  // Our getProduct overload supports (slug) and (category, slug)
+  const product = getProduct(params.slug) || getProduct(params.category as any, params.slug);
+
+  const title = product ? product.name : "Product";
+  const description =
+    product?.description ??
+    "Product details and specifications.";
+  const images =
+    (product?.images && product.images.length > 0 ? product.images : ["/products/placeholder.jpg"]) as
+      | string[]
+      | undefined;
+
+  const url = `https://your-domain.com/products/${params.category}/${params.slug}`;
+
+  return {
+    title: `${title} | YOM Car Care`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      images,
+      type: "product",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
+    },
+  };
+}
+
+/* -------------------- Page -------------------- */
+export default function ProductDetailPage({ params }: { params: Params }) {
+  const product =
+    getProduct(params.slug) || getProduct(params.category as any, params.slug);
+
   if (!product) return notFound();
 
-  const related = getRelatedByCategory(product.category, product.slug, 4);
+  const hero = firstImage(product);
+
+  // Basic related items (same category)
+  const related = getRelatedByCategory(product.category, product.slug, 8);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="text-sm mb-4 text-gray-500">
+    <main className="container-px py-8">
+      {/* Breadcrumbs */}
+      <div className="mb-6 text-sm text-gray-600">
         <Link href="/">Home</Link> <span className="mx-1">/</span>
-        <Link href={`/products/${product.category}`}>{product.category}</Link> <span className="mx-1">/</span>
-        <span className="text-gray-700">{product.title}</span>
+        <Link href={`/products/${product.category.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`}>
+          {product.category}
+        </Link>{" "}
+        <span className="mx-1">/</span>
+        <span className="text-gray-700">{product.name}</span>
       </div>
 
+      {/* Main content */}
       <div className="grid gap-8 md:grid-cols-2">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border bg-white">
+        {/* Left: Image panel (white background, like listing cards) */}
+        <div className="rounded-3xl overflow-hidden border border-white/10 bg-zinc-900">
+          <div className="relative aspect-[4/3] bg-white">
             <Image
-              src={product.image}
-              alt={product.title}
+              src={hero}
+              alt={product.name}
               fill
               className="object-contain p-6"
-              sizes="(min-width: 768px) 50vw, 100vw"
-              priority
+              sizes="(min-width: 1024px) 50vw, 100vw"
             />
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-semibold">{product.title}</h1>
-          <p className="mt-1 text-sm text-gray-500">{product.category}</p>
+        {/* Right: Details */}
+        <div className="space-y-5">
+          <h1 className="text-3xl md:text-4xl font-bold">{product.name}</h1>
 
-          <div className="mt-4 text-2xl font-bold">R {product.price.toFixed(2)}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-lg bg-black/10 px-2.5 py-1 text-xs">
+              {product.category}
+            </span>
+            {product.brand ? (
+              <span className="inline-flex items-center rounded-lg bg-black/10 px-2.5 py-1 text-xs">
+                Brand: {product.brand}
+              </span>
+            ) : null}
+            {product.sku ? (
+              <span className="inline-flex items-center rounded-lg bg-black/10 px-2.5 py-1 text-xs">
+                SKU: {product.sku}
+              </span>
+            ) : null}
+          </div>
 
-          {product.description && (
-            <p className="mt-4 text-gray-700 leading-relaxed">{product.description}</p>
+          {product.description ? (
+            <p className="text-gray-700 leading-relaxed">{product.description}</p>
+          ) : (
+            <p className="text-gray-700 leading-relaxed">
+              High-quality car-care product supplied by YOM Car Care.
+            </p>
           )}
 
-          <div className="mt-6 flex items-center gap-3">
-            <AddToCartButton
-              slug={product.slug}
-              title={product.title}
-              price={product.price}
-              image={product.image}
-              category={product.category}
-              size="lg"
-            />
-            <Link
-              href="/cart"
-              className="rounded-xl border px-5 py-3 hover:bg-gray-50"
-              aria-label="Go to cart"
-            >
-              View cart
-            </Link>
+          {/* Price row (kept simple for now) */}
+          <div className="pt-2">
+            <span className="text-2xl font-semibold">
+              {typeof product.price === "number"
+                ? `R${product.price.toFixed(2)}`
+                : product.price ?? ""}
+            </span>
           </div>
 
-          <ul className="mt-6 text-sm text-gray-600 space-y-1">
-            <li>• Fast delivery across DRC & SA regions</li>
-            <li>• Easy returns within 7 days</li>
-            <li>• Secure checkout (PayFast soon)</li>
-          </ul>
-        </motion.div>
+          {/* CTA buttons (placeholder actions for now) */}
+          <div className="flex gap-3 pt-2">
+            <button className="rounded-xl border px-4 py-2 font-medium hover:bg-gray-50">
+              Add to cart
+            </button>
+            <button className="rounded-xl border px-4 py-2 font-medium hover:bg-gray-50">
+              Enquire
+            </button>
+          </div>
+        </div>
       </div>
 
-      {related.length > 0 && (
+      {/* Related products */}
+      {related.length > 0 ? (
         <section className="mt-12">
-          <h2 className="text-lg font-semibold mb-4">You may also like</h2>
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-            {related.map((p) => (
-              <Link
-                key={p.slug}
-                href={`/products/${p.category}/${p.slug}`}
-                className="rounded-xl border overflow-hidden hover:shadow"
+          <h2 className="text-xl font-semibold mb-4">Related products</h2>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {related.map((rp, i) => (
+              <li
+                key={rp.slug}
+                className="group rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 text-white"
               >
-                <div className="relative w-full aspect-square bg-white">
-                  <Image src={p.image} alt={p.title} fill className="object-contain p-4" />
+                <div className="relative bg-white aspect-[4/3]">
+                  <Image
+                    src={firstImage(rp)}
+                    alt={rp.name}
+                    fill
+                    className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.03]"
+                    sizes="(min-width:1280px) 25vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+                  />
                 </div>
-                <div className="p-3">
-                  <p className="text-sm font-medium line-clamp-1">{p.title}</p>
-                  <p className="text-[13px] text-gray-500">{p.category}</p>
-                  <p className="mt-1 font-semibold text-sm">R {p.price.toFixed(2)}</p>
+                <div className="px-5 py-4 bg-zinc-900 border-t border-white/10">
+                  <h3 className="font-semibold leading-snug line-clamp-2">
+                    {rp.name}
+                  </h3>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="inline-flex items-center rounded-lg bg-white/10 px-2.5 py-1 text-xs text-white/90">
+                      Public
+                    </span>
+                    <Link
+                      href={`/products/${rp.category.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}/${rp.slug}`}
+                      className="text-sm font-semibold underline"
+                    >
+                      view
+                    </Link>
+                  </div>
                 </div>
-              </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
-      )}
+      ) : null}
     </main>
   );
 }
