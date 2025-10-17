@@ -15,15 +15,23 @@ export type ProductData = {
   name: string;
   category: Category;
   size?: string;
+
+  /** OPTIONAL commerce fields used by the product detail page / schema */
+  sku?: string;            // <-- added
+  brand?: string;          // <-- added
+
   /** Legacy single image field some components still use */
   img?: string;
   /** Preferred (first image is the thumb) */
   images?: string[];
+
   /** Some places treat price as a number, others as display text; allow both */
   price?: number | string;
   currency?: "USD" | "CDF" | string;
+
   /** Use an array for UI badges */
   badges?: Badge[];
+
   /** Optional: used by product detail + metadata */
   description?: string;
 };
@@ -54,6 +62,8 @@ export const products: ProductData[] = [
     name: "Shield Snow Foam 1L",
     category: ext,
     size: "1L",
+    sku: "SSF-1L",
+    brand: "Shield",
     images: imgs("shield-snow-foam-1l"),
     price: 9.5,
     currency: "USD",
@@ -66,6 +76,8 @@ export const products: ProductData[] = [
     name: "Shield Splash Car Shampoo 500ml",
     category: ext,
     size: "500ml",
+    sku: "SSC-500",
+    brand: "Shield",
     images: imgs("shield-splash-car-shampoo-500ml"),
     price: 6.9,
     currency: "USD",
@@ -78,6 +90,8 @@ export const products: ProductData[] = [
     name: "Shield Quick Detailer 500ml",
     category: ext,
     size: "500ml",
+    sku: "SQD-500",
+    brand: "Shield",
     images: imgs("shield-quick-detailer-500ml"),
     price: 7.5,
     currency: "USD",
@@ -91,6 +105,8 @@ export const products: ProductData[] = [
     name: "Shield Leather Care 400ml",
     category: int,
     size: "400ml",
+    sku: "SLC-400",
+    brand: "Shield",
     images: imgs("shield-leather-care-400ml"),
     price: 7.8,
     currency: "USD",
@@ -102,6 +118,8 @@ export const products: ProductData[] = [
     name: "Interior Cleaner 500ml",
     category: int,
     size: "500ml",
+    sku: "IC-500",
+    brand: "YOM",
     images: imgs("interior-cleaner-500ml"),
     price: 6.2,
     currency: "USD",
@@ -114,6 +132,8 @@ export const products: ProductData[] = [
     slug: "monster-fresh-ocean",
     name: "Monster Fresh Ocean",
     category: air,
+    sku: "MFO-01",
+    brand: "Monster",
     images: imgs("monster-fresh-ocean"),
     price: 2.5,
     currency: "USD",
@@ -124,6 +144,8 @@ export const products: ProductData[] = [
     slug: "monster-fresh-vanilla",
     name: "Monster Fresh Vanilla",
     category: air,
+    sku: "MFV-01",
+    brand: "Monster",
     images: imgs("monster-fresh-vanilla"),
     price: 2.5,
     currency: "USD",
@@ -137,6 +159,8 @@ export const products: ProductData[] = [
     name: "Shield Sheen Silicone 500ml",
     category: det,
     size: "500ml",
+    sku: "SSS-500",
+    brand: "Shield",
     images: imgs("shield-sheen-silicone-500ml"),
     price: 6.9,
     currency: "USD",
@@ -147,6 +171,8 @@ export const products: ProductData[] = [
     slug: "clay-bar-kit",
     name: "Clay Bar Kit",
     category: det,
+    sku: "CBK-01",
+    brand: "YOM",
     images: imgs("clay-bar-kit"),
     price: 12.0,
     currency: "USD",
@@ -159,6 +185,8 @@ export const products: ProductData[] = [
     slug: "shield-standard-sponge",
     name: "Shield Standard Sponge",
     category: acc,
+    sku: "SSS-01",
+    brand: "Shield",
     images: imgs("shield-standard-sponge"),
     price: 1.2,
     currency: "USD",
@@ -169,6 +197,8 @@ export const products: ProductData[] = [
     slug: "microfiber-towel-pack",
     name: "Microfiber Towel Pack",
     category: acc,
+    sku: "MTP-04",
+    brand: "YOM",
     images: imgs("microfiber-towel-pack"),
     price: 4.5,
     currency: "USD",
