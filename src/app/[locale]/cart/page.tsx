@@ -7,9 +7,13 @@ import type { Metadata } from "next";
 import NextDynamic from "next/dynamic";
 import Link from "next/link";
 
-// Absolute import to reuse the same client component
+// ✅ Use absolute alias to the shared client cart component
+// Make sure your tsconfig/jsconfig has: { "compilerOptions": { "baseUrl": "src", "paths": { "@/*": ["*"] } } }
 const CartClient = NextDynamic(
-  () => import("../cart/CartClient").then((m) => m.default).catch(() => null),
+  () =>
+    import("@/app/cart/CartClient")
+      .then((m) => m.default)
+      .catch(() => null),
   {
     ssr: false,
     loading: () => (
