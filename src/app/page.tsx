@@ -1,6 +1,6 @@
 // src/app/page.tsx
 import Hero from "./components/Hero";
-import CategoryStrip from "./components/CategoryStrip";
+// ⛔️ CategoryStrip removed here — now rendered inside the Hero
 import FeaturedProducts from "./components/FeaturedProducts";
 import Benefits from "./components/Benefits";
 import BrandBar from "./components/BrandBar";
@@ -28,7 +28,6 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <CategoryStrip />
 
       {/* ✅ driven by featuredHome */}
       <FeaturedProducts

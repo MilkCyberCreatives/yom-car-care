@@ -1,87 +1,163 @@
-// src/lib/products.ts
-import {
-  allProducts as _allProducts,
-  products as _products,
-  categories as _CATEGORIES,
-  firstImage as _firstImage,
-  getByCategory as _getByCategory,
-  type ProductData,
-} from "@/data/products";
+/* ---------------------------------------------
+   Single source of truth for product listing
+   - Scans /public/products/<category> subfolders
+   - Merges prices from src/data/prices.ts (if present)
+   - No external services required
+---------------------------------------------- */
 
-/** Canonical product type to import from this module */
-export type Product = ProductData;
+import fs from "fs";
+import path from "path";
 
-/** Public categories constant */
-export const ALL_CATEGORIES = _CATEGORIES;
+export type Currency = "USD" | "CDF" | string;
 
-/** Return the master list (prefers allProducts if present) */
-export function getAllProducts(): Product[] {
-  return Array.isArray(_allProducts) && _allProducts.length ? _allProducts : _products;
-}
+export type Product = {
+  slug: string;
+  name: string;
+  category: string;     // Human label e.g. "Interior", "Exterior"
+  price?: number;
+  currency?: Currency;
+  images?: string[];    // absolute paths starting with /products/...
+  img?: string;         // absolute path for the primary image
+};
 
-/** Get products by category */
-export function getProductsByCategory(category: Product["category"]): Product[] {
-  if (typeof _getByCategory === "function") return _getByCategory(category) as Product[];
-  return getAllProducts().filter((p) => p.category === category);
-}
+export const CATEGORY_SLUGS = [
+  "accessories",
+  "air-fresheners",
+  "detailing",
+  "exterior",
+  "interior",
+] as const;
 
-/** Get one product by slug */
-export function getProductBySlug(slug: string): Product | undefined {
-  return getAllProducts().find((p) => p.slug === slug);
-}
+export type CategorySlug = (typeof CATEGORY_SLUGS)[number];
 
-/**
- * Get one product.
- * Overloads:
- *  - getProduct(slug)
- *  - getProduct(category, slug)  // category is ignored for lookup but kept for backwards-compat
- */
-export function getProduct(slug: string): Product | undefined;
-export function getProduct(category: Product["category"], slug: string): Product | undefined;
-export function getProduct(a: any, b?: any): Product | undefined {
-  const slug = typeof b === "string" ? b : a;
-  return getProductBySlug(slug);
-}
+export const catSlug = (c: string) =>
+  c.replace(/[^a-z0-9]+/gi, "-").toLowerCase() as CategorySlug;
 
-/** Slug list (for SSG params) */
-export function getSlugs(): string[] {
-  return getAllProducts().map((p) => p.slug).filter(Boolean);
-}
-
-/** Small related-items helper */
-export function getRelatedByCategory(
-  category: Product["category"],
-  excludeSlug?: string,
-  limit = 8
-): Product[] {
-  const list = getProductsByCategory(category).filter((p) => p.slug !== excludeSlug);
-  return list.slice(0, limit);
-}
-
-/** Thumbnail resolver with fallback */
-export function firstImage(p: Product): string {
-  if (typeof _firstImage === "function") return _firstImage(p);
-  return p.images?.[0] ?? p.img ?? "/products/placeholder.jpg";
-}
-
-/** Counts per category */
-export function countByCategory(): Record<Product["category"], number> {
-  const counts = Object.fromEntries(_CATEGORIES.map((c) => [c, 0])) as Record<Product["category"], number>;
-  for (const p of getAllProducts()) counts[p.category]++;
-  return counts;
-}
-
-/** Category slug utilities */
-export function toCategorySlug(input: string) {
-  return input
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
-}
-export function fromCategorySlug(slug: string) {
-  return slug
-    .split("-")
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+const toTitle = (s: string) =>
+  s
+    .replace(/\.[^.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
     .join(" ");
+
+const labelFromSlug = (slug: string) =>
+  slug
+    .split("-")
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+
+const isImageFile = (f: string) => /\.(png|jpe?g|webp|gif|svg)$/i.test(f);
+
+/** Prefer category subfolder path when a bare filename is provided */
+export function firstImage(p: Product): string {
+  const raw = (Array.isArray(p.images) && p.images[0]) || p.img || "/products/placeholder.jpg";
+  if (raw.startsWith("/")) return raw;
+  const cat = p?.category ? catSlug(p.category) : "";
+  return cat ? `/products/${cat}/${raw}` : `/products/${raw}`;
+}
+
+/** Build a slug from name/title */
+const toSlug = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/** Load price map if present (src/data/prices.ts or src/data/price-list.json) */
+type PriceEntry = { price: number; currency?: Currency };
+type PriceMap = Record<string, PriceEntry>;
+function loadPriceMap(): PriceMap {
+  try {
+    // Prefer TS file so you have types & comments
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require("@/data/prices");
+    return (mod.priceList || mod.default || {}) as PriceMap;
+  } catch {
+    // Try JSON as a fallback
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const json = require("@/data/price-list.json");
+      return (json || {}) as PriceMap;
+    } catch {
+      return {};
+    }
+  }
+}
+
+/** Scan public/products/<category> and return Product[] (with prices merged) */
+function scanPublicCatalog(): Product[] {
+  const base = path.join(process.cwd(), "public", "products");
+  const prices = loadPriceMap();
+  let results: Product[] = [];
+
+  for (const c of CATEGORY_SLUGS) {
+    const dir = path.join(base, c);
+    let files: string[] = [];
+    try {
+      files = fs.readdirSync(dir).filter(isImageFile);
+    } catch {
+      continue;
+    }
+
+    const categoryLabel = labelFromSlug(c);
+    const items = files.map((file) => {
+      const name = toTitle(file);
+      const slug = toSlug(name);
+      const img = `/products/${c}/${file}`;
+
+      // Price lookup keys we support:
+      // - by product slug (preferred)
+      // - by raw filename without extension (convenience)
+      const fileKey = file.replace(/\.[^.]+$/, "");
+      const priceEntry =
+        prices[slug] ||
+        prices[`${c}/${fileKey}`] ||
+        prices[fileKey] ||
+        undefined;
+
+      return {
+        slug,
+        name,
+        category: categoryLabel,
+        img,
+        images: [img],
+        price: priceEntry?.price,
+        currency: priceEntry?.currency || "USD",
+      } as Product;
+    });
+
+    results = results.concat(items);
+  }
+
+  // Dedupe by slug to be safe
+  const seen = new Set<string>();
+  const deduped: Product[] = [];
+  for (const p of results) {
+    if (!seen.has(p.slug)) {
+      seen.add(p.slug);
+      deduped.push(p);
+    }
+  }
+  return deduped;
+}
+
+/** Public API used by pages/components */
+let _cache: Product[] | null = null;
+
+export function getAllProducts(): Product[] {
+  if (_cache) return _cache;
+  _cache = scanPublicCatalog();
+  return _cache;
+}
+
+export function getByCategorySlug(categorySlug: string): Product[] {
+  return getAllProducts().filter(
+    (p) => catSlug(p.category) === categorySlug
+  );
+}
+
+export function getBySlug(categorySlug: string, productSlug: string): Product | undefined {
+  return getAllProducts().find(
+    (p) => catSlug(p.category) === categorySlug && p.slug === productSlug
+  );
 }

@@ -1,4 +1,3 @@
-// src/app/components/FeaturedProducts.tsx
 "use client";
 
 import Link from "@/app/components/LocaleLink";
@@ -15,13 +14,100 @@ type LegacyItem = {
   img?: string;
   price?: number | string;
   currency?: "USD" | "CDF" | string;
-  category?: string;
-  categorySlug?: string;
+  category?: string;       // may be human label or slug
+  categorySlug?: string;   // "/products/exterior" or "exterior"
   href?: string;
   badge?: string | React.ReactNode;
 };
 
 type AnyItem = FPItem | LegacyItem;
+
+/* ---------------- helpers ---------------- */
+
+const catSlug = (c?: string) =>
+  (c || "")
+    .toString()
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/^products\//i, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .toLowerCase();
+
+function prettyCat(
+  c: FPItem["category"]
+): "Exterior" | "Interior" | "Detailing" | "Accessories" | "Air Fresheners" | "—" {
+  switch (c) {
+    case "exterior": return "Exterior";
+    case "interior": return "Interior";
+    case "detailing": return "Detailing";
+    case "accessories": return "Accessories";
+    case "air-fresheners": return "Air Fresheners";
+    default: return "—";
+  }
+}
+
+function formatPrice(n: number, currency = "USD") {
+  return (currency === "CDF" ? "CDF " : "$") + (Number.isFinite(n) ? n.toLocaleString() : "0");
+}
+
+/** Build absolute product image path. If a bare filename is given, use /products/<category>/<file> */
+function resolveImg(img: string | undefined, category: string | undefined) {
+  if (!img) return "";
+  if (img.startsWith("/")) return img;
+  const cat = catSlug(category);
+  return cat ? `/products/${cat}/${img}` : `/products/${img}`;
+}
+
+/** Normalize any incoming shape to FPItem */
+function normalize(item: AnyItem): FPItem {
+  const legacy = item as LegacyItem;
+
+  const name = (legacy as FPItem).name ?? legacy.name ?? legacy.title ?? "Product";
+  const roughSlug =
+    (legacy as FPItem).slug ??
+    legacy.slug ??
+    name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  // Determine category slug (accept "Exterior", "exterior", "/products/exterior", etc.)
+  const rawCat =
+    (legacy as FPItem).category ??
+    legacy.category ??
+    (legacy.categorySlug
+      ? legacy.categorySlug.split("/").filter(Boolean).pop()
+      : undefined) ??
+    "accessories";
+  const category = (["exterior", "interior", "detailing", "accessories", "air-fresheners"].includes(catSlug(rawCat))
+    ? (catSlug(rawCat) as FPItem["category"])
+    : "accessories");
+
+  const imgRaw = (legacy as FPItem).img ?? legacy.img ?? legacy.image ?? "";
+  const img = resolveImg(imgRaw, category);
+
+  // Price
+  const priceRaw = (legacy as FPItem).price ?? legacy.price;
+  const price = typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
+  const currency = ((legacy as FPItem).currency ?? legacy.currency ?? "USD") as FPItem["currency"];
+
+  // Final slug + href to PDP
+  const slug = roughSlug;
+  const href =
+    (legacy as FPItem).href ??
+    legacy.href ??
+    `/products/${category}/${slug}`;
+
+  return {
+    slug,
+    name,
+    img,
+    price,
+    currency,
+    category,
+    href,
+    badge: (legacy as FPItem).badge ?? (legacy.badge as FPItem["badge"]),
+  };
+}
+
+/* ---------------- component ---------------- */
 
 export default function FeaturedProducts({
   heading = "Featured Products",
@@ -37,7 +123,7 @@ export default function FeaturedProducts({
   // ✅ Never crash on undefined/null or wrong shape
   const rawList: AnyItem[] =
     (Array.isArray(products) ? (products as AnyItem[]) : featuredHome) ?? [];
-  const list = rawList.map(normalize);
+  const list: FPItem[] = rawList.map(normalize);
 
   return (
     <section className="container-px my-14">
@@ -57,7 +143,7 @@ export default function FeaturedProducts({
       ) : (
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {list.map((p, idx) => {
-            const href = p.href ? l(p.href) : l(`/products/${p.slug}`);
+            const href = l(p.href || `/products/${p.category}/${p.slug}`);
 
             return (
               <article
@@ -124,63 +210,4 @@ export default function FeaturedProducts({
       )}
     </section>
   );
-}
-
-/* ---------------- helpers ---------------- */
-
-function normalize(item: AnyItem): FPItem {
-  const maybe = item as FPItem;
-  if (maybe && "name" in maybe && "img" in maybe) return maybe;
-
-  const legacy = item as LegacyItem;
-
-  const name = legacy.name ?? legacy.title ?? "Product";
-  const img = legacy.img ?? legacy.image ?? "";
-  const categoryRaw =
-    legacy.category ??
-    (legacy.categorySlug
-      ? legacy.categorySlug.split("/").filter(Boolean).pop()
-      : undefined) ??
-    "accessories";
-
-  const category =
-    categoryRaw === "exterior" ||
-    categoryRaw === "interior" ||
-    categoryRaw === "detailing" ||
-    categoryRaw === "accessories"
-      ? (categoryRaw as FPItem["category"])
-      : "accessories";
-
-  const priceRaw = legacy.price;
-  const price =
-    typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
-
-  return {
-    slug:
-      legacy.slug ??
-      name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
-    name,
-    img,
-    price,
-    currency: (legacy.currency as FPItem["currency"]) ?? "USD",
-    category,
-    href: legacy.href,
-    badge: legacy.badge as FPItem["badge"],
-  };
-}
-
-function prettyCat(
-  c: FPItem["category"]
-): "Exterior" | "Interior" | "Detailing" | "Accessories" | "—" {
-  switch (c) {
-    case "exterior": return "Exterior";
-    case "interior": return "Interior";
-    case "detailing": return "Detailing";
-    case "accessories": return "Accessories";
-    default: return "—";
-  }
-}
-
-function formatPrice(n: number, currency = "USD") {
-  return (currency === "CDF" ? "CDF " : "$") + (Number.isFinite(n) ? n.toLocaleString() : "0");
 }

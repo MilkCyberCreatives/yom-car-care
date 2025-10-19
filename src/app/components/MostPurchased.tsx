@@ -1,10 +1,76 @@
-// src/app/components/MostPurchased.tsx
 "use client";
 
 import Link from "@/app/components/LocaleLink";
 import { ShoppingCart } from "lucide-react";
 import useLocaleLink from "@/hooks/useLocaleLink";
 import { mostPurchasedHome, type MPItem } from "@/data/mostPurchased";
+
+/* ------------- helpers ------------- */
+
+const catSlug = (c?: string) =>
+  (c || "")
+    .toString()
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/^products\//i, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .toLowerCase();
+
+function prettyCat(
+  c: MPItem["category"]
+): "Exterior" | "Interior" | "Detailing" | "Accessories" | "Air Fresheners" | "—" {
+  switch (c) {
+    case "exterior": return "Exterior";
+    case "interior": return "Interior";
+    case "detailing": return "Detailing";
+    case "accessories": return "Accessories";
+    case "air-fresheners": return "Air Fresheners";
+    default: return "—";
+  }
+}
+
+function formatPrice(n: number, currency = "USD") {
+  return (currency === "CDF" ? "CDF " : "$") + (Number.isFinite(n) ? n.toLocaleString() : "0");
+}
+
+/** Build absolute product image path. If a bare filename is given, use /products/<category>/<file> */
+function resolveImg(img: string | undefined, category: string | undefined) {
+  if (!img) return "";
+  if (img.startsWith("/")) return img;
+  const cat = catSlug(category);
+  return cat ? `/products/${cat}/${img}` : `/products/${img}`;
+}
+
+/** Normalize any incoming shape to MPItem */
+function normalize(item: MPItem | any): MPItem {
+  const name = item?.name ?? item?.title ?? "Product";
+  const roughSlug =
+    item?.slug ??
+    name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  const rawCat =
+    item?.category ??
+    (item?.categorySlug
+      ? String(item.categorySlug).split("/").filter(Boolean).pop()
+      : undefined) ??
+    "accessories";
+  const category = (["exterior", "interior", "detailing", "accessories", "air-fresheners"].includes(catSlug(rawCat))
+    ? (catSlug(rawCat) as MPItem["category"])
+    : "accessories");
+
+  const img = resolveImg(item?.img ?? item?.image, category);
+
+  const priceRaw = item?.price;
+  const price = typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
+  const currency = (item?.currency ?? "USD") as MPItem["currency"];
+
+  const slug = roughSlug;
+  const href = item?.href ?? `/products/${category}/${slug}`;
+
+  return { slug, name, img, price, currency, category, href, badge: item?.badge };
+}
+
+/* ------------- component ------------- */
 
 export default function MostPurchased({
   heading = "Most Purchased",
@@ -18,8 +84,8 @@ export default function MostPurchased({
   const { l } = useLocaleLink();
 
   // ✅ Never crash on undefined/null or wrong shape
-  const list: MPItem[] =
-    (Array.isArray(products) ? (products as MPItem[]) : mostPurchasedHome) ?? [];
+  const rawList: any[] = (Array.isArray(products) ? (products as any[]) : mostPurchasedHome) ?? [];
+  const list: MPItem[] = rawList.map(normalize);
 
   return (
     <section className="container-px my-14">
@@ -41,7 +107,7 @@ export default function MostPurchased({
       ) : (
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {list.map((p, idx) => {
-            const href = p.href ? l(p.href) : l(`/products/${p.slug}`);
+            const href = l(p.href || `/products/${p.category}/${p.slug}`);
 
             return (
               <article
@@ -104,22 +170,4 @@ export default function MostPurchased({
       )}
     </section>
   );
-}
-
-/* ------------- helpers ------------- */
-
-function prettyCat(
-  c: MPItem["category"]
-): "Exterior" | "Interior" | "Detailing" | "Accessories" | "—" {
-  switch (c) {
-    case "exterior": return "Exterior";
-    case "interior": return "Interior";
-    case "detailing": return "Detailing";
-    case "accessories": return "Accessories";
-    default: return "—";
-  }
-}
-
-function formatPrice(n: number, currency = "USD") {
-  return (currency === "CDF" ? "CDF " : "$") + (Number.isFinite(n) ? n.toLocaleString() : "0");
 }

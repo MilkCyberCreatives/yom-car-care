@@ -107,18 +107,6 @@ export default function ContactPage() {
                 ))}
               </ul>
             </div>
-
-            {/* Brand strip */}
-            <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6">
-              <p className="text-white/80 text-sm mb-4">Brands we carry</p>
-              <div className="grid grid-cols-3 gap-6 items-center">
-                {["/logo.svg", "/logo1.svg", "/logo2.svg"].map((src, i) => (
-                  <div key={i} className="relative h-10 grayscale hover:grayscale-0 transition">
-                    <Image src={src} alt="Brand" fill className="object-contain" sizes="120px" />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right: Client-side form */}

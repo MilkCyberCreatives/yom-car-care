@@ -1,101 +1,74 @@
 import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
-export const runtime = "nodejs"; // Ensure Node runtime
-export const dynamic = "force-dynamic"; // Avoid edge pre-bundling
-
-type Payload = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  subject?: string;
-  message?: string;
-};
-
-/**
- * We NEVER reference "resend" in a static or dynamic import so Webpack won't try
- * to resolve it at build time. Instead we use eval('require') at runtime only
- * if RESEND_API_KEY is present.
- */
-function loadResendSafely():
-  | { Resend: new (key: string) => { emails: { send: (args: any) => Promise<{ error?: unknown }> } } }
-  | null {
-  try {
-    // eslint-disable-next-line no-eval
-    const req: NodeRequire = (eval("require") as unknown) as NodeRequire;
-    // If the package is not installed, this will throw at runtime (not build)
-    // and we will just fallback.
-    // @ts-ignore - types not available unless the pkg is installed
-    const mod = req("resend");
-    return mod || null;
-  } catch {
-    return null;
-  }
+function sanitize(s: string) {
+  return s.replace(/[\r\n\t]/g, " ").trim();
 }
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as Payload;
+    const data = await req.json();
 
-    const TO = process.env.CONTACT_TO || "info@yomcarcare.com";
-    const FROM = process.env.CONTACT_FROM || "Website <no-reply@yomcarcare.com>";
-    const KEY = process.env.RESEND_API_KEY;
+    // Basic validation
+    const name = sanitize(String(data.name || ""));
+    const email = sanitize(String(data.email || ""));
+    const phone = sanitize(String(data.phone || ""));
+    const subject = sanitize(String(data.subject || "Website enquiry"));
+    const message = String(data.message || "").trim();
+    const hp = String(data.hp || ""); // honeypot
 
-    // If no API key, instruct client to fallback to mailto:
-    if (!KEY) {
-      return NextResponse.json({ ok: false, fallback: true });
+    if (hp) {
+      // Bot caught—pretend success
+      return NextResponse.json({ ok: true });
     }
 
-    // Try to load resend only at runtime
-    const mod = loadResendSafely();
-    if (!mod) {
-      return NextResponse.json({
-        ok: false,
-        fallback: true,
-        error: "Email provider not available on runtime",
-      });
-    }
-
-    // Create client
-    // @ts-ignore - types only present when package is installed
-    const resend = new mod.Resend(KEY);
-
-    const subject =
-      body.subject?.trim() || `New enquiry from ${body.name?.trim() || "Website"}`;
-
-    const text = [
-      `Name: ${body.name || "-"}`,
-      `Email: ${body.email || "-"}`,
-      `Phone: ${body.phone || "-"}`,
-      "",
-      "Message:",
-      body.message || "-",
-      "",
-      "----",
-      "Sent from yomcarcare.com",
-    ].join("\n");
-
-    const { error } = await resend.emails.send({
-      to: TO,
-      from: FROM,
-      subject,
-      text,
-      // Only set reply_to if it's a sane email
-      reply_to:
-        body.email && /\S+@\S+\.\S+/.test(body.email) ? body.email : undefined,
-    });
-
-    if (error) {
+    if (!name || !email || !message) {
       return NextResponse.json(
-        { ok: false, fallback: true, error: String(error) },
-        { status: 200 }
+        { ok: false, error: "Missing required fields." },
+        { status: 400 }
       );
     }
 
+    // SMTP transporter (uses your own mailbox — no 3rd party)
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,              // e.g. mail.yomcarcare.com
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: process.env.SMTP_SECURE !== "false", // true for 465
+      auth: {
+        user: process.env.SMTP_USER,            // full mailbox, e.g. info@yomcarcare.com
+        pass: process.env.SMTP_PASS,            // mailbox password / app password
+      },
+    });
+
+    const TO = process.env.CONTACT_TO || "info@yomcarcare.com";
+    const FROM =
+      process.env.CONTACT_FROM || `Website <no-reply@yomcarcare.com>`;
+
+    const html = `
+      <table style="font-family:system-ui,Arial,sans-serif;font-size:14px;line-height:1.6;color:#111;width:100%;max-width:640px">
+        <tr><td><h2 style="margin:0 0 12px">New website enquiry</h2></td></tr>
+        <tr><td><strong>Name:</strong> ${name}</td></tr>
+        <tr><td><strong>Email:</strong> ${email}</td></tr>
+        <tr><td><strong>Phone:</strong> ${phone || "-"}</td></tr>
+        <tr><td><strong>Subject:</strong> ${subject}</td></tr>
+        <tr><td style="padding-top:8px"><strong>Message:</strong><br>${message.replace(/\n/g, "<br>")}</td></tr>
+      </table>
+    `;
+
+    await transporter.sendMail({
+      to: TO,
+      from: FROM,
+      replyTo: email || TO,
+      subject: `[YOM Car Care] ${subject}`,
+      html,
+    });
+
     return NextResponse.json({ ok: true });
-  } catch (err) {
+  } catch (err: any) {
+    console.error("CONTACT_API_ERROR:", err);
     return NextResponse.json(
-      { ok: false, fallback: true, error: (err as Error)?.message || "Unknown error" },
-      { status: 200 }
+      { ok: false, error: "Failed to send message." },
+      { status: 500 }
     );
   }
 }

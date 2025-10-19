@@ -3,14 +3,17 @@
 import { motion } from "framer-motion";
 import Link from "@/app/components/LocaleLink"; // ✅ locale-aware wrapper for next/link
 import { useI18n } from "@/hooks/useI18n";
+import CategoryStrip from "@/app/components/CategoryStrip"; // ⬅️ bring the pills into the hero
 
 export default function Hero() {
   const { t } = useI18n();
 
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden">
+      {/* background gradient */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-zinc-900 via-zinc-900 to-black" />
 
+      {/* soft blobs */}
       <motion.div
         className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-[var(--brand-blue)]/20 blur-3xl"
         initial={{ opacity: 0, scale: 0.8 }}
@@ -24,6 +27,7 @@ export default function Hero() {
         transition={{ duration: 1.2, delay: 0.2 }}
       />
 
+      {/* main hero content */}
       <div className="container-px grid md:grid-cols-2 gap-10 items-center">
         <div>
           <h1 className="text-3xl md:text-5xl font-semibold leading-tight">
@@ -59,6 +63,19 @@ export default function Hero() {
           </div>
         </div>
       </div>
+
+      {/* ---- Category pills pinned to the bottom of the hero ---- */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-3">
+        <div className="container-px">
+          {/* remove default spacing from CategoryStrip without editing it */}
+          <div className="pointer-events-auto [&>section]:py-0">
+            <CategoryStrip />
+          </div>
+        </div>
+      </div>
+
+      {/* spacer so next section doesn't overlap the pinned strip */}
+      <div aria-hidden className="h-[64px]" />
     </section>
   );
 }

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Phone } from "lucide-react";
 import SearchBar from "../components/SearchBar";
 import { useI18n } from "@/hooks/useI18n";
-import LocaleLink from "./LocaleLink"; // ⬅️ fixed
+import LocaleLink from "./LocaleLink";
 
 type NavItem = { href: string; label: string };
 
@@ -16,8 +16,8 @@ export default function MainHeader() {
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const { t } = useI18n();
 
+  // Ordered as requested: Products, Categories (dropdown), About, Contact
   const NAV: NavItem[] = [
-    { href: "/", label: "Home" },
     { href: "/products", label: t.common.products },
     { href: "/about", label: t.common.about },
     { href: "/contact", label: t.common.contact },
@@ -33,17 +33,25 @@ export default function MainHeader() {
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" || pathname === "/fr" : pathname.startsWith(href);
+    href === "/"
+      ? pathname === "/" || pathname === "/fr"
+      : pathname.startsWith(href);
 
   return (
     <header className="sticky top-0 z-50 bg-[var(--brand-blue)] text-white">
       <div className="container-px flex items-center gap-4 justify-between py-3">
-        {/* Logo */}
-        <LocaleLink href="/" className="flex items-center gap-3" aria-label="YOM Car Care — Home">
+        {/* Logo (links to Home) */}
+        <LocaleLink
+          href="/"
+          className="flex items-center gap-3"
+          aria-label="YOM Car Care — Home"
+        >
           <Image
             src="/logo.svg"
             alt="YOM Car Care"
@@ -62,19 +70,26 @@ export default function MainHeader() {
         {/* Desktop nav + actions */}
         <div className="hidden lg:flex items-center gap-8">
           <nav className="flex items-center gap-8">
-            {NAV.map((item) => (
-              <LocaleLink
-                key={item.href}
-                href={item.href}
-                className={`nav-link ${isActive(item.href) ? "font-semibold text-white" : ""}`}
-                aria-current={isActive(item.href) ? "page" : undefined}
-              >
-                {item.label}
-              </LocaleLink>
-            ))}
+            {/* Products first */}
+            <LocaleLink
+              key="/products"
+              href="/products"
+              className={`nav-link ${
+                isActive("/products") ? "font-semibold text-white" : ""
+              }`}
+              aria-current={isActive("/products") ? "page" : undefined}
+            >
+              {t.common.products}
+            </LocaleLink>
+
+            {/* Categories dropdown */}
             <div className="relative group">
-              <button className="nav-link inline-flex items-center gap-1" type="button">
-                {t.common.categories} <ChevronDown size={16} className="opacity-90" />
+              <button
+                className="nav-link inline-flex items-center gap-1"
+                type="button"
+              >
+                {t.common.categories}{" "}
+                <ChevronDown size={16} className="opacity-90" />
               </button>
               <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity absolute left-0 mt-2 w-64 rounded-xl bg-zinc-900/95 border border-white/10 p-2 shadow-2xl">
                 {CATEGORIES.map((c) => (
@@ -88,14 +103,39 @@ export default function MainHeader() {
                 ))}
               </div>
             </div>
+
+            {/* About */}
+            <LocaleLink
+              key="/about"
+              href="/about"
+              className={`nav-link ${
+                isActive("/about") ? "font-semibold text-white" : ""
+              }`}
+              aria-current={isActive("/about") ? "page" : undefined}
+            >
+              {t.common.about}
+            </LocaleLink>
+
+            {/* Contact */}
+            <LocaleLink
+              key="/contact"
+              href="/contact"
+              className={`nav-link ${
+                isActive("/contact") ? "font-semibold text-white" : ""
+              }`}
+              aria-current={isActive("/contact") ? "page" : undefined}
+            >
+              {t.common.contact}
+            </LocaleLink>
           </nav>
+
+          {/* Call button (kept) */}
           <a href="tel:+243848994045" className="btn-ghost">
             <Phone size={18} />
             {t.common.call_now}
           </a>
-          <LocaleLink href="/products" className="btn-primary">
-            {t.common.browse}
-          </LocaleLink>
+
+          {/* Removed the Browse button as requested */}
         </div>
 
         {/* Mobile toggle */}
@@ -119,30 +159,48 @@ export default function MainHeader() {
           />
           <div className="absolute right-0 top-0 h-full w-[86%] max-w-sm bg-zinc-950 text-white border-l border-white/10 shadow-2xl p-4 flex flex-col">
             <div className="flex items-center justify-between">
-              <LocaleLink href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2">
-                <Image src="/logo.svg" alt="YOM Car Care" width={120} height={34} />
+              <LocaleLink
+                href="/"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2"
+              >
+                <Image
+                  src="/logo.svg"
+                  alt="YOM Car Care"
+                  width={120}
+                  height={34}
+                />
               </LocaleLink>
-              <button className="p-2 rounded-lg hover:bg-white/10" onClick={() => setMobileOpen(false)} aria-label="Close" type="button">
+              <button
+                className="p-2 rounded-lg hover:bg-white/10"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close"
+                type="button"
+              >
                 <X />
               </button>
             </div>
 
-            <div className="mt-4"><SearchBar className="w-full" /></div>
+            <div className="mt-4">
+              <SearchBar className="w-full" />
+            </div>
 
             <nav className="mt-4 space-y-2">
-              {NAV.map((item) => (
-                <LocaleLink
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`block rounded-lg px-3 py-2 text-base ${
-                    isActive(item.href) ? "bg-white/10 text-white" : "text-white/85 hover:bg-white/5"
-                  }`}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                >
-                  {item.label}
-                </LocaleLink>
-              ))}
+              {/* Products (first) */}
+              <LocaleLink
+                href="/products"
+                onClick={() => setMobileOpen(false)}
+                className={`block rounded-lg px-3 py-2 text-base ${
+                  isActive("/products")
+                    ? "bg-white/10 text-white"
+                    : "text-white/85 hover:bg-white/5"
+                }`}
+                aria-current={isActive("/products") ? "page" : undefined}
+              >
+                {t.common.products}
+              </LocaleLink>
+
+              {/* Categories collapsible */}
               <div className="mt-2">
                 <button
                   type="button"
@@ -151,7 +209,12 @@ export default function MainHeader() {
                   aria-expanded={mobileCatsOpen}
                 >
                   <span>{t.common.categories}</span>
-                  <ChevronDown size={18} className={`transition-transform ${mobileCatsOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    size={18}
+                    className={`transition-transform ${
+                      mobileCatsOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
                 {mobileCatsOpen && (
                   <div className="mt-1 ml-2 flex flex-col">
@@ -168,18 +231,50 @@ export default function MainHeader() {
                   </div>
                 )}
               </div>
+
+              {/* About */}
+              <LocaleLink
+                href="/about"
+                onClick={() => setMobileOpen(false)}
+                className={`block rounded-lg px-3 py-2 text-base ${
+                  isActive("/about")
+                    ? "bg-white/10 text-white"
+                    : "text-white/85 hover:bg-white/5"
+                }`}
+                aria-current={isActive("/about") ? "page" : undefined}
+              >
+                {t.common.about}
+              </LocaleLink>
+
+              {/* Contact */}
+              <LocaleLink
+                href="/contact"
+                onClick={() => setMobileOpen(false)}
+                className={`block rounded-lg px-3 py-2 text-base ${
+                  isActive("/contact")
+                    ? "bg-white/10 text-white"
+                    : "text-white/85 hover:bg-white/5"
+                }`}
+                aria-current={isActive("/contact") ? "page" : undefined}
+              >
+                {t.common.contact}
+              </LocaleLink>
             </nav>
 
             <div className="mt-auto pt-4 space-y-2">
-              <a href="tel:+243848994045" className="btn-ghost w-full justify-center">
+              <a
+                href="tel:+243848994045"
+                className="btn-ghost w-full justify-center"
+              >
                 <Phone size={18} />
                 {t.common.call_now}
               </a>
-              <LocaleLink href="/products" className="btn-primary w-full justify-center" onClick={() => setMobileOpen(false)}>
-                {t.common.browse}
-              </LocaleLink>
+
+              {/* Removed the Browse button on mobile as well */}
+
               <p className="text-xs text-white/50 text-center">
-                {t.common.address_line1}, {t.common.address_line2}, {t.common.address_city}
+                {t.common.address_line1}, {t.common.address_line2},{" "}
+                {t.common.address_city}
               </p>
             </div>
           </div>
