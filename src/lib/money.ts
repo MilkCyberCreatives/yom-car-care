@@ -1,31 +1,34 @@
-// src/lib/money.ts
-
 import type { Product } from "@/lib/products";
 
-/** Format a numeric amount as money (defaults to USD) */
+/** Format a number as localized currency. */
 export function formatMoney(
   amount: number,
-  currency = "USD",
-  locale = "en-US"
+  currency: string = "USD",
+  locale: string = "en-US"
 ): string {
   try {
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
-      maximumFractionDigits: amount % 1 ? 2 : 0,
+      // Remove the cents for currencies that don't commonly use them if you prefer:
+      // minimumFractionDigits: 0,
+      // maximumFractionDigits: 0,
     }).format(amount);
   } catch {
-    // Fallback if an unknown currency code is passed
-    return `$${amount.toFixed(amount % 1 ? 2 : 0)}`;
+    // Fallback if Intl throws for some reason
+    const sign = currency === "CDF" ? "CDF " : "$";
+    return `${sign}${Number.isFinite(amount) ? amount.toLocaleString() : "0"}`;
   }
 }
 
-/** Safely format a product's price */
-export function formatProductPrice(p: Product, locale = "en-US"): string {
-  if (p.price == null || p.price === "") return "";
-  if (typeof p.price === "number") {
-    return formatMoney(p.price, (p.currency as string) || "USD", locale);
-  }
-  // price as a string like "From $9" or "Contact"
-  return p.price;
+/** Safely format a product's price (returns "" if price is missing). */
+export function formatProductPrice(p: Product, locale: string = "en-US"): string {
+  const price =
+    typeof p.price === "number" && Number.isFinite(p.price) ? p.price : undefined;
+  if (price === undefined) return "";
+
+  const currency =
+    typeof p.currency === "string" && p.currency ? p.currency : "USD";
+
+  return formatMoney(price, currency, locale);
 }
