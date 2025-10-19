@@ -1,25 +1,27 @@
-/* ---------------------------------------------
+/* ---------------------------------------------------------
    Single source of truth for product listing
-   - Scans /public/products/<category> subfolders
+   - Scans /public/products/<category> subfolders at build/runtime
    - Merges prices from src/data/prices.ts (if present)
-   - No external services required
----------------------------------------------- */
+   - Exports the names your pages/components expect
+---------------------------------------------------------- */
 
 import fs from "fs";
 import path from "path";
 
+/* ---------- Types ---------- */
 export type Currency = "USD" | "CDF" | string;
 
 export type Product = {
   slug: string;
   name: string;
-  category: string;     // Human label e.g. "Interior", "Exterior"
+  category: string;     // Human label, e.g., "Interior", "Exterior"
   price?: number;
   currency?: Currency;
   images?: string[];    // absolute paths starting with /products/...
   img?: string;         // absolute path for the primary image
 };
 
+/* ---------- Category helpers ---------- */
 export const CATEGORY_SLUGS = [
   "accessories",
   "air-fresheners",
@@ -28,11 +30,21 @@ export const CATEGORY_SLUGS = [
   "interior",
 ] as const;
 
+// Some code elsewhere imports ALL_CATEGORIES — export the same list
+export const ALL_CATEGORIES = CATEGORY_SLUGS;
+
 export type CategorySlug = (typeof CATEGORY_SLUGS)[number];
 
 export const catSlug = (c: string) =>
   c.replace(/[^a-z0-9]+/gi, "-").toLowerCase() as CategorySlug;
 
+const labelFromSlug = (slug: string) =>
+  slug
+    .split("-")
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+
+/* ---------- String / path helpers ---------- */
 const toTitle = (s: string) =>
   s
     .replace(/\.[^.]+$/, "")
@@ -43,48 +55,41 @@ const toTitle = (s: string) =>
     .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
     .join(" ");
 
-const labelFromSlug = (slug: string) =>
-  slug
-    .split("-")
-    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
-    .join(" ");
+const toSlug = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const isImageFile = (f: string) => /\.(png|jpe?g|webp|gif|svg)$/i.test(f);
 
 /** Prefer category subfolder path when a bare filename is provided */
 export function firstImage(p: Product): string {
-  const raw = (Array.isArray(p.images) && p.images[0]) || p.img || "/products/placeholder.jpg";
+  const raw =
+    (Array.isArray(p.images) && p.images[0]) ||
+    p.img ||
+    "/products/placeholder.jpg";
+
   if (raw.startsWith("/")) return raw;
   const cat = p?.category ? catSlug(p.category) : "";
   return cat ? `/products/${cat}/${raw}` : `/products/${raw}`;
 }
 
-/** Build a slug from name/title */
-const toSlug = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-/** Load price map if present (src/data/prices.ts or src/data/price-list.json) */
+/* ---------- Prices (optional) ---------- */
+// src/data/prices.ts should export `priceList` or default.
+// We AVOID importing JSON so Vercel/Next won't try to resolve a missing file.
 type PriceEntry = { price: number; currency?: Currency };
 type PriceMap = Record<string, PriceEntry>;
+
 function loadPriceMap(): PriceMap {
   try {
-    // Prefer TS file so you have types & comments
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod = require("@/data/prices");
-    return (mod.priceList || mod.default || {}) as PriceMap;
+    const map = (mod.priceList || mod.default || {}) as PriceMap;
+    return map && typeof map === "object" ? map : {};
   } catch {
-    // Try JSON as a fallback
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const json = require("@/data/price-list.json");
-      return (json || {}) as PriceMap;
-    } catch {
-      return {};
-    }
+    return {};
   }
 }
 
-/** Scan public/products/<category> and return Product[] (with prices merged) */
+/* ---------- Build catalog by scanning /public/products ---------- */
 function scanPublicCatalog(): Product[] {
   const base = path.join(process.cwd(), "public", "products");
   const prices = loadPriceMap();
@@ -96,7 +101,7 @@ function scanPublicCatalog(): Product[] {
     try {
       files = fs.readdirSync(dir).filter(isImageFile);
     } catch {
-      continue;
+      continue; // folder may not exist — skip
     }
 
     const categoryLabel = labelFromSlug(c);
@@ -105,9 +110,10 @@ function scanPublicCatalog(): Product[] {
       const slug = toSlug(name);
       const img = `/products/${c}/${file}`;
 
-      // Price lookup keys we support:
-      // - by product slug (preferred)
-      // - by raw filename without extension (convenience)
+      // Flexible price keys:
+      // 1) by generated product slug (preferred)
+      // 2) "<category>/<filename-no-ext>"
+      // 3) plain filename-no-ext (handy if you rename categories)
       const fileKey = file.replace(/\.[^.]+$/, "");
       const priceEntry =
         prices[slug] ||
@@ -129,7 +135,7 @@ function scanPublicCatalog(): Product[] {
     results = results.concat(items);
   }
 
-  // Dedupe by slug to be safe
+  // Dedupe by slug, keep first
   const seen = new Set<string>();
   const deduped: Product[] = [];
   for (const p of results) {
@@ -141,7 +147,7 @@ function scanPublicCatalog(): Product[] {
   return deduped;
 }
 
-/** Public API used by pages/components */
+/* ---------- Public API (exports used across app) ---------- */
 let _cache: Product[] | null = null;
 
 export function getAllProducts(): Product[] {
@@ -150,14 +156,24 @@ export function getAllProducts(): Product[] {
   return _cache;
 }
 
-export function getByCategorySlug(categorySlug: string): Product[] {
+export function getProductsByCategory(categorySlug: string): Product[] {
   return getAllProducts().filter(
     (p) => catSlug(p.category) === categorySlug
   );
 }
 
-export function getBySlug(categorySlug: string, productSlug: string): Product | undefined {
+export function getByCategorySlug(categorySlug: string): Product[] {
+  // Backwards-compatible alias (some files may use this)
+  return getProductsByCategory(categorySlug);
+}
+
+export function getProduct(categorySlug: string, productSlug: string): Product | undefined {
   return getAllProducts().find(
     (p) => catSlug(p.category) === categorySlug && p.slug === productSlug
   );
+}
+
+export function getBySlug(categorySlug: string, productSlug: string): Product | undefined {
+  // Backwards-compatible alias (some files may use this)
+  return getProduct(categorySlug, productSlug);
 }
