@@ -3,7 +3,19 @@
 import Link from "@/app/components/LocaleLink";
 import { ShoppingCart } from "lucide-react";
 import useLocaleLink from "@/hooks/useLocaleLink";
-import { mostPurchasedHome, type MPItem } from "@/data/mostPurchased";
+import { mostPurchasedHome, type MPItem as MPItemIn } from "@/data/mostPurchased";
+
+/** Relaxed output type so category can be any string (supports "air-fresheners") */
+type MPItem = {
+  slug: string;
+  name: string;
+  img: string;
+  price: number;
+  currency: "USD" | "CDF" | string;
+  category: string; // <— widened
+  href?: string;
+  badge?: string | React.ReactNode;
+};
 
 /* ------------- helpers ------------- */
 
@@ -16,10 +28,9 @@ const catSlug = (c?: string) =>
     .replace(/[^a-z0-9]+/gi, "-")
     .toLowerCase();
 
-function prettyCat(
-  c: MPItem["category"]
-): "Exterior" | "Interior" | "Detailing" | "Accessories" | "Air Fresheners" | "—" {
-  switch (c) {
+function prettyCat(c?: string):
+  | "Exterior" | "Interior" | "Detailing" | "Accessories" | "Air Fresheners" | "—" {
+  switch (catSlug(c)) {
     case "exterior": return "Exterior";
     case "interior": return "Interior";
     case "detailing": return "Detailing";
@@ -41,33 +52,33 @@ function resolveImg(img: string | undefined, category: string | undefined) {
   return cat ? `/products/${cat}/${img}` : `/products/${img}`;
 }
 
-/** Normalize any incoming shape to MPItem */
-function normalize(item: MPItem | any): MPItem {
-  const name = item?.name ?? item?.title ?? "Product";
-  const roughSlug =
-    item?.slug ??
+/** Normalize any incoming shape to our relaxed MPItem */
+function normalize(item: MPItemIn | any): MPItem {
+  const any = item as any;
+
+  const name: string = any?.name ?? any?.title ?? "Product";
+  const roughSlug: string =
+    any?.slug ??
     name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-  const rawCat =
-    item?.category ??
-    (item?.categorySlug
-      ? String(item.categorySlug).split("/").filter(Boolean).pop()
+  const rawCat: string =
+    any?.category ??
+    (any?.categorySlug
+      ? String(any.categorySlug).split("/").filter(Boolean).pop()
       : undefined) ??
     "accessories";
-  const category = (["exterior", "interior", "detailing", "accessories", "air-fresheners"].includes(catSlug(rawCat))
-    ? (catSlug(rawCat) as MPItem["category"])
-    : "accessories");
+  const category = catSlug(rawCat) || "accessories";
 
-  const img = resolveImg(item?.img ?? item?.image, category);
+  const img = resolveImg(any?.img ?? any?.image, category);
 
-  const priceRaw = item?.price;
-  const price = typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
-  const currency = (item?.currency ?? "USD") as MPItem["currency"];
+  const priceRaw = any?.price;
+  const price: number = typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
+  const currency: MPItem["currency"] = any?.currency ?? "USD";
 
   const slug = roughSlug;
-  const href = item?.href ?? `/products/${category}/${slug}`;
+  const href: string | undefined = any?.href ?? `/products/${category}/${slug}`;
 
-  return { slug, name, img, price, currency, category, href, badge: item?.badge };
+  return { slug, name, img, price, currency, category, href, badge: any?.badge };
 }
 
 /* ------------- component ------------- */
@@ -78,7 +89,7 @@ export default function MostPurchased({
   viewAllHref = "/products",
 }: {
   heading?: string;
-  products?: MPItem[] | unknown; // be lenient at the boundary
+  products?: MPItemIn[] | unknown; // lenient input
   viewAllHref?: string;
 }) {
   const { l } = useLocaleLink();

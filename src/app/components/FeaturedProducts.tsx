@@ -3,9 +3,9 @@
 import Link from "@/app/components/LocaleLink";
 import { ShoppingCart } from "lucide-react";
 import useLocaleLink from "@/hooks/useLocaleLink";
-import { featuredHome, type FPItem } from "@/data/featured";
+import { featuredHome, type FPItem as FPItemIn } from "@/data/featured";
 
-/** Accept both FPItem and legacy shapes from earlier code */
+/** Input items can be from data/featured (FPItemIn) or any legacy shape */
 type LegacyItem = {
   slug?: string;
   title?: string;
@@ -20,7 +20,19 @@ type LegacyItem = {
   badge?: string | React.ReactNode;
 };
 
-type AnyItem = FPItem | LegacyItem;
+type AnyItem = FPItemIn | LegacyItem;
+
+/** Output shape we render with (loosen category to string to support "air-fresheners") */
+type FPItem = {
+  slug: string;
+  name: string;
+  img: string;
+  price: number;
+  currency: "USD" | "CDF" | string;
+  category: string; // <— widened from FPItemIn["category"]
+  href?: string;
+  badge?: string | React.ReactNode;
+};
 
 /* ---------------- helpers ---------------- */
 
@@ -33,10 +45,9 @@ const catSlug = (c?: string) =>
     .replace(/[^a-z0-9]+/gi, "-")
     .toLowerCase();
 
-function prettyCat(
-  c: FPItem["category"]
-): "Exterior" | "Interior" | "Detailing" | "Accessories" | "Air Fresheners" | "—" {
-  switch (c) {
+function prettyCat(c?: string):
+  | "Exterior" | "Interior" | "Detailing" | "Accessories" | "Air Fresheners" | "—" {
+  switch (catSlug(c)) {
     case "exterior": return "Exterior";
     case "interior": return "Interior";
     case "detailing": return "Detailing";
@@ -58,42 +69,36 @@ function resolveImg(img: string | undefined, category: string | undefined) {
   return cat ? `/products/${cat}/${img}` : `/products/${img}`;
 }
 
-/** Normalize any incoming shape to FPItem */
+/** Normalize any incoming shape to our relaxed FPItem */
 function normalize(item: AnyItem): FPItem {
-  const legacy = item as LegacyItem;
+  const any = item as any;
 
-  const name = (legacy as FPItem).name ?? legacy.name ?? legacy.title ?? "Product";
-  const roughSlug =
-    (legacy as FPItem).slug ??
-    legacy.slug ??
+  const name: string = any?.name ?? any?.title ?? "Product";
+  const roughSlug: string =
+    any?.slug ??
     name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
   // Determine category slug (accept "Exterior", "exterior", "/products/exterior", etc.)
-  const rawCat =
-    (legacy as FPItem).category ??
-    legacy.category ??
-    (legacy.categorySlug
-      ? legacy.categorySlug.split("/").filter(Boolean).pop()
+  const rawCat: string =
+    any?.category ??
+    (any?.categorySlug
+      ? String(any.categorySlug).split("/").filter(Boolean).pop()
       : undefined) ??
     "accessories";
-  const category = (["exterior", "interior", "detailing", "accessories", "air-fresheners"].includes(catSlug(rawCat))
-    ? (catSlug(rawCat) as FPItem["category"])
-    : "accessories");
+  const category = catSlug(rawCat) || "accessories";
 
-  const imgRaw = (legacy as FPItem).img ?? legacy.img ?? legacy.image ?? "";
+  const imgRaw: string | undefined = any?.img ?? any?.image ?? "";
   const img = resolveImg(imgRaw, category);
 
   // Price
-  const priceRaw = (legacy as FPItem).price ?? legacy.price;
-  const price = typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
-  const currency = ((legacy as FPItem).currency ?? legacy.currency ?? "USD") as FPItem["currency"];
+  const priceRaw = any?.price;
+  const price: number = typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
+  const currency: FPItem["currency"] = any?.currency ?? "USD";
 
   // Final slug + href to PDP
   const slug = roughSlug;
-  const href =
-    (legacy as FPItem).href ??
-    legacy.href ??
-    `/products/${category}/${slug}`;
+  const href: string | undefined =
+    any?.href ?? `/products/${category}/${slug}`;
 
   return {
     slug,
@@ -101,9 +106,9 @@ function normalize(item: AnyItem): FPItem {
     img,
     price,
     currency,
-    category,
+    category, // keep as string so "air-fresheners" is allowed
     href,
-    badge: (legacy as FPItem).badge ?? (legacy.badge as FPItem["badge"]),
+    badge: any?.badge,
   };
 }
 
