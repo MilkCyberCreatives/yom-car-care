@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "@/app/components/LocaleLink";
-import { ShoppingCart } from "lucide-react";
 import useLocaleLink from "@/hooks/useLocaleLink";
 import { featuredHome, type FPItem as FPItemIn } from "@/data/featured";
+import AddToCartButton from "@/app/components/AddToCartButton";
 
 /** Input items can be from data/featured (FPItemIn) or any legacy shape */
 type LegacyItem = {
@@ -14,22 +14,22 @@ type LegacyItem = {
   img?: string;
   price?: number | string;
   currency?: "USD" | "CDF" | string;
-  category?: string;       // may be human label or slug
-  categorySlug?: string;   // "/products/exterior" or "exterior"
+  category?: string;       // "Exterior" | "exterior" | "/products/exterior"
+  categorySlug?: string;
   href?: string;
   badge?: string | React.ReactNode;
 };
 
 type AnyItem = FPItemIn | LegacyItem;
 
-/** Output shape we render with (loosen category to string to support "air-fresheners") */
+/** Output we render with (category is string so we allow air-fresheners etc.) */
 type FPItem = {
   slug: string;
   name: string;
   img: string;
   price: number;
   currency: "USD" | "CDF" | string;
-  category: string; // <— widened from FPItemIn["category"]
+  category: string; // slug form like "exterior"
   href?: string;
   badge?: string | React.ReactNode;
 };
@@ -61,7 +61,7 @@ function formatPrice(n: number, currency = "USD") {
   return (currency === "CDF" ? "CDF " : "$") + (Number.isFinite(n) ? n.toLocaleString() : "0");
 }
 
-/** Build absolute product image path. If a bare filename is given, use /products/<category>/<file> */
+/** Build absolute product image path. */
 function resolveImg(img: string | undefined, category: string | undefined) {
   if (!img) return "";
   if (img.startsWith("/")) return img;
@@ -69,7 +69,7 @@ function resolveImg(img: string | undefined, category: string | undefined) {
   return cat ? `/products/${cat}/${img}` : `/products/${img}`;
 }
 
-/** Normalize any incoming shape to our relaxed FPItem */
+/** Normalize any incoming shape to FPItem */
 function normalize(item: AnyItem): FPItem {
   const any = item as any;
 
@@ -78,7 +78,6 @@ function normalize(item: AnyItem): FPItem {
     any?.slug ??
     name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-  // Determine category slug (accept "Exterior", "exterior", "/products/exterior", etc.)
   const rawCat: string =
     any?.category ??
     (any?.categorySlug
@@ -90,12 +89,10 @@ function normalize(item: AnyItem): FPItem {
   const imgRaw: string | undefined = any?.img ?? any?.image ?? "";
   const img = resolveImg(imgRaw, category);
 
-  // Price
   const priceRaw = any?.price;
   const price: number = typeof priceRaw === "string" ? (Number(priceRaw) || 0) : priceRaw ?? 0;
   const currency: FPItem["currency"] = any?.currency ?? "USD";
 
-  // Final slug + href to PDP
   const slug = roughSlug;
   const href: string | undefined =
     any?.href ?? `/products/${category}/${slug}`;
@@ -106,7 +103,7 @@ function normalize(item: AnyItem): FPItem {
     img,
     price,
     currency,
-    category, // keep as string so "air-fresheners" is allowed
+    category,
     href,
     badge: any?.badge,
   };
@@ -120,12 +117,11 @@ export default function FeaturedProducts({
   viewAllHref = "/products",
 }: {
   heading?: string;
-  products?: AnyItem[] | unknown; // be lenient at the boundary
+  products?: AnyItem[] | unknown;
   viewAllHref?: string;
 }) {
   const { l } = useLocaleLink();
 
-  // ✅ Never crash on undefined/null or wrong shape
   const rawList: AnyItem[] =
     (Array.isArray(products) ? (products as AnyItem[]) : featuredHome) ?? [];
   const list: FPItem[] = rawList.map(normalize);
@@ -190,13 +186,17 @@ export default function FeaturedProducts({
                       <Link href={href}>{p.name}</Link>
                     </h3>
 
-                    <button
-                      type="button"
-                      aria-label="Add to cart"
-                      className="shrink-0 rounded-xl border border-white/10 px-2.5 py-2 hover:bg-white/10"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                    </button>
+                    <AddToCartButton
+                      variant="icon"
+                      product={{
+                        slug: p.slug,
+                        categorySlug: p.category,
+                        name: p.name,
+                        price: p.price,
+                        currency: p.currency,
+                        img: p.img,
+                      }}
+                    />
                   </div>
 
                   <div className="mt-2 flex items-center justify-between text-sm">

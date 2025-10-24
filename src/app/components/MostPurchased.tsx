@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "@/app/components/LocaleLink";
-import { ShoppingCart } from "lucide-react";
 import useLocaleLink from "@/hooks/useLocaleLink";
 import { mostPurchasedHome, type MPItem as MPItemIn } from "@/data/mostPurchased";
+import AddToCartButton from "@/app/components/AddToCartButton";
 
-/** Relaxed output type so category can be any string (supports "air-fresheners") */
+/** Relaxed output type so category can be any slug string */
 type MPItem = {
   slug: string;
   name: string;
   img: string;
   price: number;
   currency: "USD" | "CDF" | string;
-  category: string; // <— widened
+  category: string;
   href?: string;
   badge?: string | React.ReactNode;
 };
@@ -44,7 +44,6 @@ function formatPrice(n: number, currency = "USD") {
   return (currency === "CDF" ? "CDF " : "$") + (Number.isFinite(n) ? n.toLocaleString() : "0");
 }
 
-/** Build absolute product image path. If a bare filename is given, use /products/<category>/<file> */
 function resolveImg(img: string | undefined, category: string | undefined) {
   if (!img) return "";
   if (img.startsWith("/")) return img;
@@ -52,7 +51,6 @@ function resolveImg(img: string | undefined, category: string | undefined) {
   return cat ? `/products/${cat}/${img}` : `/products/${img}`;
 }
 
-/** Normalize any incoming shape to our relaxed MPItem */
 function normalize(item: MPItemIn | any): MPItem {
   const any = item as any;
 
@@ -81,20 +79,17 @@ function normalize(item: MPItemIn | any): MPItem {
   return { slug, name, img, price, currency, category, href, badge: any?.badge };
 }
 
-/* ------------- component ------------- */
-
 export default function MostPurchased({
   heading = "Most Purchased",
   products,
   viewAllHref = "/products",
 }: {
   heading?: string;
-  products?: MPItemIn[] | unknown; // lenient input
+  products?: MPItemIn[] | unknown;
   viewAllHref?: string;
 }) {
   const { l } = useLocaleLink();
 
-  // ✅ Never crash on undefined/null or wrong shape
   const rawList: any[] = (Array.isArray(products) ? (products as any[]) : mostPurchasedHome) ?? [];
   const list: MPItem[] = rawList.map(normalize);
 
@@ -156,13 +151,17 @@ export default function MostPurchased({
                       <Link href={href}>{p.name}</Link>
                     </h3>
 
-                    <button
-                      type="button"
-                      aria-label="Add to cart"
-                      className="shrink-0 rounded-xl border border-white/10 px-2.5 py-2 hover:bg-white/10"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                    </button>
+                    <AddToCartButton
+                      variant="icon"
+                      product={{
+                        slug: p.slug,
+                        categorySlug: p.category,
+                        name: p.name,
+                        price: p.price,
+                        currency: p.currency,
+                        img: p.img,
+                      }}
+                    />
                   </div>
 
                   <div className="mt-2 flex items-center justify-between text-sm">

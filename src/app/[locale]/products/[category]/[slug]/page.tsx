@@ -13,10 +13,11 @@ import {
   type Product,
 } from "@/lib/products";
 import { formatProductPrice } from "@/lib/money";
+import AddToCartButton from "@/app/components/AddToCartButton";
 
 type Params = { locale: string; category: string; slug: string };
 
-// We’ll statically generate paths for each product for both locales we support.
+// We'll statically generate for both locales.
 const LOCALES = ["en", "fr"];
 
 export async function generateStaticParams() {
@@ -37,12 +38,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const product = getProduct(params.category, params.slug);
 
-  // Safe fallbacks — we do NOT assume a `description` field exists on Product
-  const title = product ? `${product.name} | YOM Car Care` : "Product | YOM Car Care";
-  const desc =
-    product
-      ? `Explore ${product.name} — premium ${product.category.toLowerCase()} care from YOM Car Care.`
-      : "Explore premium car care products from YOM Car Care.";
+  const title = product
+    ? `${product.name} | YOM Car Care`
+    : "Product | YOM Car Care";
+  const desc = product
+    ? `Explore ${product.name} — premium ${product.category.toLowerCase()} care from YOM Car Care.`
+    : "Explore premium car care products from YOM Car Care.";
   const ogImg = product ? firstImage(product) : "/products/placeholder.jpg";
 
   return {
@@ -67,7 +68,7 @@ export default function ProductPage({ params }: { params: Params }) {
   const price = formatProductPrice(product);
   const categorySlug = catSlug(product.category);
 
-  // Suggestions: prefer same category; exclude current
+  // Suggestions
   const sameCat = getProductsByCategory(categorySlug).filter(
     (p) => p.slug !== product.slug
   );
@@ -80,7 +81,10 @@ export default function ProductPage({ params }: { params: Params }) {
     <main className="container-px py-8 md:py-10">
       {/* Breadcrumbs */}
       <nav className="mb-6 text-sm text-white/60">
-        <Link href={`/${params.locale}/products`} className="hover:underline">
+        <Link
+          href={`/${params.locale}/products`}
+          className="hover:underline"
+        >
           Products
         </Link>
         <span className="mx-2">/</span>
@@ -132,15 +136,32 @@ export default function ProductPage({ params }: { params: Params }) {
 
           <p className="mt-4 text-white/75">
             Professional-grade car care for{" "}
-            <span className="lowercase">{categorySlug.replace(/-/g, " ")}</span> use.
-            Replace this paragraph with the official product description when available.
+            <span className="lowercase">
+              {categorySlug.replace(/-/g, " ")}
+            </span>{" "}
+            use. Replace this paragraph with the official product description
+            when available.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button type="button" className="btn-primary" aria-label="Add to cart">
-              Add to cart
-            </button>
-            <Link href={`/${params.locale}/contact`} className="btn-ghost">
+            <AddToCartButton
+              variant="primary"
+              product={{
+                slug: product.slug,
+                categorySlug,
+                name: product.name,
+                price:
+                  typeof product.price === "number"
+                    ? product.price
+                    : undefined,
+                currency: product.currency,
+                img,
+              }}
+            />
+            <Link
+              href={`/${params.locale}/contact`}
+              className="btn-ghost"
+            >
               Ask a question
             </Link>
           </div>
@@ -168,12 +189,12 @@ export default function ProductPage({ params }: { params: Params }) {
           <h2 className="text-xl font-semibold">Product details</h2>
           <div className="mt-3 space-y-4 text-white/80">
             <p>
-              <strong>Usage:</strong> Apply as directed on the packaging. Test on a small
-              area first. Avoid direct sunlight where possible.
+              <strong>Usage:</strong> Apply as directed on the packaging. Test
+              on a small area first. Avoid direct sunlight where possible.
             </p>
             <p>
-              <strong>Storage:</strong> Keep sealed in a cool, dry place. Keep out of reach
-              of children.
+              <strong>Storage:</strong> Keep sealed in a cool, dry place. Keep
+              out of reach of children.
             </p>
             <p className="text-white/60 text-sm">
               Note: Replace this copy with official details when available.
@@ -204,14 +225,20 @@ export default function ProductPage({ params }: { params: Params }) {
       {suggestions.length > 0 && (
         <section className="mt-12">
           <header className="mb-4">
-            <p className="text-xs tracking-[0.2em] text-white/60">YOU MAY ALSO LIKE</p>
-            <h2 className="text-2xl md:text-3xl font-semibold">Related products</h2>
+            <p className="text-xs tracking-[0.2em] text-white/60">
+              YOU MAY ALSO LIKE
+            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold">
+              Related products
+            </h2>
           </header>
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {suggestions.map((p) => {
               const sImg = firstImage(p);
-              const href = `/${params.locale}/products/${catSlug(p.category)}/${p.slug}`;
+              const href = `/${params.locale}/products/${catSlug(
+                p.category
+              )}/${p.slug}`;
               const sPrice = formatProductPrice(p);
 
               return (
@@ -239,25 +266,20 @@ export default function ProductPage({ params }: { params: Params }) {
                         </h3>
                       </Link>
 
-                      <button
-                        type="button"
-                        aria-label="Add to cart"
-                        className="shrink-0 grid place-items-center rounded-full border border-white/10 bg-zinc-800/70 p-2 hover:bg-zinc-800 transition"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 24 24"
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                        >
-                          <path d="M6 6h15l-1.5 9h-12z" />
-                          <path d="M6 6l-1-2H3" />
-                          <circle cx="9" cy="20" r="1.5" />
-                          <circle cx="18" cy="20" r="1.5" />
-                        </svg>
-                      </button>
+                      <AddToCartButton
+                        variant="icon"
+                        product={{
+                          slug: p.slug,
+                          categorySlug: catSlug(p.category),
+                          name: p.name,
+                          price:
+                            typeof p.price === "number"
+                              ? p.price
+                              : undefined,
+                          currency: p.currency,
+                          img: sImg,
+                        }}
+                      />
                     </div>
 
                     <div className="mt-3 flex items-center justify-between">

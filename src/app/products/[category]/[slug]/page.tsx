@@ -11,13 +11,12 @@ import {
   catSlug,
 } from "@/lib/products";
 import { formatProductPrice } from "@/lib/money";
+import AddToCartButton from "@/app/components/AddToCartButton";
 
-/* ---------------- types ---------------- */
 type Params = { category: string; slug: string };
 
-/* ---------------- SSG ---------------- */
+/* ---------- SSG ---------- */
 export async function generateStaticParams() {
-  // Safe & simple: our helper scans /public/products/* and builds slugs
   const all = getAllProducts();
   return all.map((p) => ({
     category: catSlug(p.category),
@@ -31,31 +30,30 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const product = getBySlug(params.category, params.slug);
-  if (!product) {
-    return {
-      title: "Product not found | YOM Car Care",
-      description: "The product you’re looking for could not be found.",
-    };
-  }
-  const title = `${product.name} | YOM Car Care`;
-  const description =
-    "Premium car care product from YOM Car Care. View details, usage and related products.";
-  const image = firstImage(product);
+
+  const title = product
+    ? `${product.name} | YOM Car Care`
+    : "Product | YOM Car Care";
+  const desc = product
+    ? `Explore ${product.name} — premium ${product.category.toLowerCase()} care from YOM Car Care.`
+    : "Explore premium car care products from YOM Car Care.";
+  const ogImg = product ? firstImage(product) : "/products/placeholder.jpg";
+
   return {
     title,
-    description,
+    description: desc,
     alternates: {
       canonical: `/products/${params.category}/${params.slug}`,
     },
     openGraph: {
       title,
-      description,
-      images: [{ url: image }],
+      description: desc,
+      images: [{ url: ogImg }],
     },
   };
 }
 
-/* ---------------- Page ---------------- */
+/* ---------- Page ---------- */
 export default function ProductPage({ params }: { params: Params }) {
   const product = getBySlug(params.category, params.slug);
   if (!product) return notFound();
@@ -64,12 +62,13 @@ export default function ProductPage({ params }: { params: Params }) {
   const price = formatProductPrice(product);
   const categorySlug = catSlug(product.category);
 
-  // Suggestions: same category, excluding current; if fewer than 8, pad with others
-  const sameCat = getByCategorySlug(categorySlug).filter((p) => p.slug !== product.slug);
-  const rest = getAllProducts().filter(
+  const sameCat = getByCategorySlug(categorySlug).filter(
+    (p) => p.slug !== product.slug
+  );
+  const others = getAllProducts().filter(
     (p) => p.slug !== product.slug && catSlug(p.category) !== categorySlug
   );
-  const suggestions = [...sameCat, ...rest].slice(0, 8);
+  const suggestions = [...sameCat, ...others].slice(0, 8);
 
   return (
     <main className="container-px py-8 md:py-10">
@@ -89,7 +88,7 @@ export default function ProductPage({ params }: { params: Params }) {
         <span className="text-white/80">{product.name}</span>
       </nav>
 
-      {/* Top section: image + summary */}
+      {/* Top section */}
       <section className="grid gap-6 md:grid-cols-2">
         {/* Image */}
         <div className="rounded-3xl overflow-hidden border border-white/10 bg-white">
@@ -126,37 +125,41 @@ export default function ProductPage({ params }: { params: Params }) {
           </div>
 
           <p className="mt-4 text-white/75">
-            Professional-grade car care. This product is ideal for{' '}
+            Professional-grade car care for{" "}
             <span className="lowercase">{categorySlug.replace(/-/g, " ")}</span> use.
-            For best results, read the usage notes below.
+            Replace this paragraph with the official product description when available.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              className="btn-primary"
-              aria-label="Add to cart"
-            >
-              Add to cart
-            </button>
+            <AddToCartButton
+              variant="primary"
+              product={{
+                slug: product.slug,
+                categorySlug,
+                name: product.name,
+                // parse back number from formatted price isn't safe; we have raw product.price
+                price: typeof product.price === "number" ? product.price : undefined,
+                currency: product.currency,
+                img,
+              }}
+            />
             <Link href="/contact" className="btn-ghost">
               Ask a question
             </Link>
           </div>
 
-          {/* Key points (placeholder content you can refine) */}
           <div className="mt-8 grid gap-3 text-sm text-white/80">
             <div className="flex gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mt-1.5" />
-              <p>Quality you can trust — curated by YOM Car Care.</p>
+              <p>Curated by YOM Car Care — quality and value.</p>
             </div>
             <div className="flex gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mt-1.5" />
-              <p>Carefully selected for {product.category.toLowerCase()} applications.</p>
+              <p>Ideal for {product.category.toLowerCase()} applications.</p>
             </div>
             <div className="flex gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mt-1.5" />
-              <p>Available for pickup or local delivery in Lubumbashi.</p>
+              <p>Available for pickup or local delivery.</p>
             </div>
           </div>
         </div>
@@ -168,15 +171,15 @@ export default function ProductPage({ params }: { params: Params }) {
           <h2 className="text-xl font-semibold">Product details</h2>
           <div className="mt-3 space-y-4 text-white/80">
             <p>
-              <strong>Usage:</strong> Apply as directed on the label. Test on a small
-              area first. Avoid direct sunlight during application where possible.
+              <strong>Usage:</strong> Apply as directed on the packaging. Test on a small
+              area first. Avoid direct sunlight where possible.
             </p>
             <p>
               <strong>Storage:</strong> Keep sealed in a cool, dry place. Keep out of reach
               of children.
             </p>
             <p className="text-white/60 text-sm">
-              Note: Replace this copy with the official product description when available.
+              Note: Replace this copy with official details when available.
             </p>
           </div>
         </div>
@@ -239,25 +242,18 @@ export default function ProductPage({ params }: { params: Params }) {
                         </h3>
                       </Link>
 
-                      <button
-                        type="button"
-                        aria-label="Add to cart"
-                        className="shrink-0 grid place-items-center rounded-full border border-white/10 bg-zinc-800/70 p-2 hover:bg-zinc-800 transition"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 24 24"
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                        >
-                          <path d="M6 6h15l-1.5 9h-12z" />
-                          <path d="M6 6l-1-2H3" />
-                          <circle cx="9" cy="20" r="1.5" />
-                          <circle cx="18" cy="20" r="1.5" />
-                        </svg>
-                      </button>
+                      <AddToCartButton
+                        variant="icon"
+                        product={{
+                          slug: p.slug,
+                          categorySlug: catSlug(p.category),
+                          name: p.name,
+                          price:
+                            typeof p.price === "number" ? p.price : undefined,
+                          currency: p.currency,
+                          img: sImg,
+                        }}
+                      />
                     </div>
 
                     <div className="mt-3 flex items-center justify-between">
