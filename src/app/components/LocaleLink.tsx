@@ -1,29 +1,15 @@
 "use client";
 
-import Link, { LinkProps } from "next/link";
-import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useI18n } from "@/hooks/useI18n";
 
-type Props = LinkProps & {
-  className?: string;
-  children: React.ReactNode;
-};
+type Props = React.ComponentProps<typeof Link> & { href: string };
 
-export default function LocaleLink({ href, className, children, ...rest }: Props) {
-  const { l } = useI18n(); // l() builds /fr/... or /...
-
-  // href from props can be string | URL | object depending on LinkProps,
-  // we only support string here for simplicity
-  const finalHref =
-    typeof href === "string"
-      ? l(href)
-      : typeof href === "object" && "pathname" in href && typeof href.pathname === "string"
-      ? l(href.pathname)
-      : href;
-
-  return (
-    <Link href={finalHref} className={className} {...rest}>
-      {children}
-    </Link>
-  );
+export default function LocaleLink({ href, ...rest }: Props) {
+  const { locale } = useI18n();
+  // If href is already absolute (http) leave as-is
+  const isExternal = /^https?:\/\//i.test(href);
+  const final = isExternal ? href : `/${locale}${href.startsWith("/") ? "" : "/"}${href}`.replace(/\/+$/,"").replace(/\/{2,}/g,"/");
+  return <Link href={final} {...rest} />;
 }

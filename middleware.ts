@@ -1,25 +1,30 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "./src/i18n";
+import { NextResponse, type NextRequest } from "next/server";
+import { locales, defaultLocale, isLocale } from "@/i18n/config";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Already has /en or /fr → allow
-  const pathLocale = pathname.split("/")[1];
-  if (SUPPORTED_LOCALES.includes(pathLocale as any)) {
+  // Ignore static files / api
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/public")
+  ) {
     return NextResponse.next();
   }
 
-  // Otherwise rewrite to default locale
+  // already /en or /fr
+  const seg = pathname.split("/")[1];
+  if (isLocale(seg)) return NextResponse.next();
+
+  // otherwise redirect to default locale
   const url = req.nextUrl.clone();
-  url.pathname = `/${DEFAULT_LOCALE}${pathname}`;
+  url.pathname = `/${defaultLocale}${pathname}`;
   return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: [
-    // run middleware for ALL pages except _next, assets, api
-    "/((?!_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)|api/).*)",
-  ],
+  // run on all routes
+  matcher: ["/((?!_next|.*\\..*).*)"],
 };
