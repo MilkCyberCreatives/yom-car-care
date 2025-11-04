@@ -10,6 +10,7 @@ const BRANDS: { src: string; alt: string }[] = [
   { src: "/partners/logo-innovacar.webp", alt: "Innova Car" },
   { src: "/partners/shield-chemicals-logo-200px.png", alt: "Shield Chemicals" },
   { src: "/partners/logo_fra_ber_nopayoff.png", alt: "Fra-Ber" },
+  { src: "/partners/tonyin.jpg", alt: "Tonyin" },
 ];
 
 export default function BrandBar({ className }: { className?: string }) {
@@ -18,7 +19,7 @@ export default function BrandBar({ className }: { className?: string }) {
       {/* White background card */}
       <div className="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
         <div
-          className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-10 gap-y-6"
+          className="mx-auto grid max-w-5xl grid-cols-2 items-center justify-center gap-x-8 gap-y-6 sm:grid-cols-4"
           aria-label="Partner brands"
         >
           {BRANDS.map((b) => (
