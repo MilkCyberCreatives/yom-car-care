@@ -1,6 +1,6 @@
 // src/app/page.tsx
 import Hero from "./components/Hero";
-// ⛔️ CategoryStrip removed here — now rendered inside the Hero
+// CategoryStrip is rendered inside <Hero />
 import FeaturedProducts from "./components/FeaturedProducts";
 import Benefits from "./components/Benefits";
 import BrandBar from "./components/BrandBar";
@@ -9,6 +9,7 @@ import FAQ from "./components/FAQ";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import MostPurchased from "./components/MostPurchased";
 import { featuredHome } from "@/data/featured";
+import Footer from "./components/Footer";
 
 export const metadata = {
   title: "YOM Car Care — Car Care Products in Lubumbashi (Cash on Delivery)",
@@ -29,7 +30,7 @@ export default function HomePage() {
     <>
       <Hero />
 
-      {/* ✅ driven by featuredHome */}
+      {/* Featured grid, fed by featuredHome list */}
       <FeaturedProducts
         heading="Featured Products"
         products={featuredHome}
@@ -41,7 +42,10 @@ export default function HomePage() {
       <CTABanner />
       <MostPurchased />
       <FAQ />
+
+      {/* Floating WhatsApp action button */}
       <FloatingWhatsApp />
+      <Footer />
     </>
   );
 }

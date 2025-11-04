@@ -97,15 +97,17 @@ export default function MainHeader() {
                 {t.common.categories} <ChevronDown size={16} className="opacity-90" />
               </button>
               <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 focus-within:visible focus-within:opacity-100 transition-opacity absolute left-0 mt-2 w-64 rounded-xl bg-zinc-900/95 border border-white/10 p-2 shadow-2xl">
-                {CATEGORIES.map((c) => (
-                  <LocaleLink
-                    key={c.href}
-                    href={c.href}
-                    className="block rounded-lg px-3 py-2 text-white/85 hover:text-white hover:bg-white/5"
-                  >
-                    {c.label}
-                  </LocaleLink>
-                ))}
+                <div className="py-1">
+                  {CATEGORIES.map((c) => (
+                    <LocaleLink
+                      key={c.href}
+                      href={c.href}
+                      className="block rounded-lg px-3 py-2 text-white/85 hover:text-white hover:bg-white/5"
+                    >
+                      {c.label}
+                    </LocaleLink>
+                  ))}
+                </div>
               </div>
             </div>
           </nav>

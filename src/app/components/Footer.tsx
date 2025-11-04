@@ -29,7 +29,6 @@ export default function Footer() {
                 className="h-10 w-auto"
               />
             </div>
-            <p className="mt-2 text-white/70">Cash on Delivery</p>
 
             {/* Inline actions: call + email */}
             <div className="mt-6 flex flex-wrap items-center gap-3">
