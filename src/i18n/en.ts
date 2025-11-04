@@ -1,54 +1,60 @@
-import type { Dict } from './types'
-
-export const en: Dict = {
+// src/i18n/en.ts
+export const en = {
   common: {
-    brand: 'YOM Car Care',
-    address_line1: '538 Avenue Kipopo',
-    address_line2: 'Golf Malela',
-    address_city: 'Lubumbashi',
-
-    phone_label: 'Call',
-    email_label: 'Email',
-    phone: '+243 84 899 4045',        // ← added
-    email: 'info@yomcarcare.com',     // ← added
-
-    browse_products: 'Browse Products',
-    call_now: 'Call Now',
-    whatsapp_us: 'WhatsApp Us',
-    cash_on_delivery: 'Cash on Delivery',
-
-    products: 'Products',
-    about: 'About Us',
-    contact: 'Contact',
-    categories: 'Categories',
-    browse: 'Browse',
+    products: "Products",
+    about: "About Us",
+    contact: "Contact",
+    categories: "Categories",
+    call_now: "Call Now",
+    browse: "Browse",
+    address_line1: "538 Avenue Kipopo",
+    address_line2: "Golf Malela",
+    address_city: "Lubumbashi",
+    submit_order: "Submit Order Request",
+    sending: "Sending...",
+    sent: "Sent!",
+    cart: "Cart",
+    subtotal: "Subtotal",
+    empty_cart: "Your cart is empty.",
+    most_purchased: "Most Purchased",
+    featured: "Featured Products",
+    related_products: "You may also like",
+    // ...
   },
-  hero: {
-    title: 'Premium car care in Lubumbashi',
-    title_1: 'Premium car care for a',
-    title_highlight: 'showroom shine',
-    title_2: 'in Lubumbashi',
-    subtitle: 'Exterior, interior, detailing & accessories. Pay on delivery.',
-    cta_primary: 'Shop Products',
-    cta_secondary: 'Contact Us',
-    french_hint: 'Need French? Switch language from the top bar.',
+  cart: {
+    title: "Your Cart",
+    instructions:
+      "Review your selection. You can update quantities, remove items, and then send us your order request. We’ll confirm availability & delivery with you directly.",
+    name_label: "Your Name *",
+    phone_label: "Phone / WhatsApp *",
+    email_label: "Email",
+    notes_label: "Notes / Delivery instructions",
+    notes_placeholder: "Example: I need fast delivery in Lubumbashi",
+    policy:
+      "By submitting you agree to be contacted by YOM Car Care to confirm stock, pricing, and delivery options.",
+    remove: "Remove",
+    qty: "Qty:",
+    failed: "Failed to send cart to admin.",
+    success: "Thank you. We’ve received your request and will contact you.",
   },
-  footer: {
-    address: 'Address',
-    products: 'Products',
-    info: 'Info',
-    faq: 'FAQ',
-    contact: 'Contact',
-    legal_area: 'Legal Area',
-    privacy: 'Privacy Policy',
-    cookie: 'Cookie Policy',
-    terms: 'General Terms of Use',
+  contact: {
+    heading: "We’re here to help",
+    blurb:
+      "Need a recommendation for exterior, interior or detailing? Message us and we’ll point you to the right product.",
+    details_title: "Contact Details",
+    hours_title: "Business Hours",
+    form_title: "Send us a message",
+    form_help:
+      "Tell us what you need help with—exterior, interior, detailing or accessories.",
+    topic_label: "Topic",
+    message_label: "Message",
+    // ...
   },
-  cats: {
-    exterior: 'Exterior',
-    interior: 'Interior',
-    air: 'Air Fresheners',
-    detailing: 'Detailing',
-    accessories: 'Accessories',
+  categoriesPretty: {
+    exterior: "Exterior",
+    interior: "Interior",
+    detailing: "Detailing",
+    accessories: "Accessories",
+    "air-fresheners": "Air Fresheners",
   },
-}
+};

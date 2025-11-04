@@ -1,30 +1,29 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import type { AnchorHTMLAttributes } from "react";
+import Link, { LinkProps } from "next/link";
+import React from "react";
+import { useI18n } from "@/hooks/useI18n";
 
-type AnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };
+type Props = LinkProps & {
+  className?: string;
+  children: React.ReactNode;
+};
 
-/**
- * LocaleLink
- * - If you're on /fr, prefixes internal hrefs with /fr.
- * - Accepts only string hrefs; renders a plain <a>.
- * - Avoids typedRoutes issues (no next/link).
- */
-export default function LocaleLink({ href, ...props }: AnchorProps) {
-  const pathname = usePathname() || "/";
-  const isFR = pathname.startsWith("/fr");
-  const isInternal = href.startsWith("/");
+export default function LocaleLink({ href, className, children, ...rest }: Props) {
+  const { l } = useI18n(); // l() builds /fr/... or /...
 
-  const computed = isFR
-    ? isInternal
-      ? href.startsWith("/fr")
-        ? href
-        : `/fr${href === "/" ? "" : href}`
-      : href
-    : isInternal
-      ? href.replace(/^\/fr/, "") || "/"
+  // href from props can be string | URL | object depending on LinkProps,
+  // we only support string here for simplicity
+  const finalHref =
+    typeof href === "string"
+      ? l(href)
+      : typeof href === "object" && "pathname" in href && typeof href.pathname === "string"
+      ? l(href.pathname)
       : href;
 
-  return <a href={computed} {...props} />;
+  return (
+    <Link href={finalHref} className={className} {...rest}>
+      {children}
+    </Link>
+  );
 }

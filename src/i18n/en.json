@@ -1,0 +1,34 @@
+{
+  "common": {
+    "call_now": "Call Now",
+    "search_placeholder": "Search products…",
+    "browse_products": "Browse products",
+    "address_line1": "538 Avenue Kipopo",
+    "address_line2": "Golf Malela",
+    "address_city": "Lubumbashi",
+    "language": "Language",
+    "english": "English",
+    "french": "Français",
+    "cart": "Cart"
+  },
+  "hero": {
+    "title_1": "Premium car care in ",
+    "title_highlight": "Lubumbashi. ",
+    "title_2": "Exterior, interior, detailing & accessories.",
+    "subtitle": "High-performance products trusted by people who love their cars. Visit us or ask us what to use for your paint, interior, tyres, plastics, and more.",
+    "french_hint": "Disponible en français 🇫🇷"
+  },
+  "cats": {
+    "exterior": "Exterior",
+    "interior": "Interior",
+    "air": "Air Fresheners",
+    "detailing": "Detailing",
+    "accessories": "Accessories"
+  },
+  "nav": {
+    "products": "Products",
+    "about": "About Us",
+    "contact": "Contact",
+    "categories": "Categories"
+  }
+}

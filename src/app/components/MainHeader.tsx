@@ -1,13 +1,14 @@
+// src/app/components/MainHeader.tsx
 "use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Phone } from "lucide-react";
-import SearchBar from "../components/SearchBar";
+import SearchBar from "./SearchBar";
 import { useI18n } from "@/hooks/useI18n";
 import LocaleLink from "./LocaleLink";
-import CartIndicator from "@/app/components/CartIndicator";
+import CartIndicator from "./CartIndicator";
 
 type NavItem = { href: string; label: string };
 
@@ -17,7 +18,6 @@ export default function MainHeader() {
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const { t } = useI18n();
 
-  // Nav starts with Products now (no "Home" item)
   const NAV: NavItem[] = [
     { href: "/products", label: t.common.products },
     { href: "/about", label: t.common.about },
@@ -45,9 +45,9 @@ export default function MainHeader() {
       : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--brand-blue)] text-white">
+    <header className="sticky top-0 z-[999] bg-[var(--brand-blue)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
       <div className="container-px flex items-center gap-4 justify-between py-3">
-        {/* Logo links to home */}
+        {/* Logo */}
         <LocaleLink
           href="/"
           className="flex items-center gap-3"
@@ -71,13 +71,14 @@ export default function MainHeader() {
         {/* Desktop nav + actions */}
         <div className="hidden lg:flex items-center gap-8">
           <nav className="flex items-center gap-8">
-            {/* Products / About / Contact */}
             {NAV.map((item) => (
               <LocaleLink
                 key={item.href}
                 href={item.href}
-                className={`nav-link ${
-                  isActive(item.href) ? "font-semibold text-white" : ""
+                className={`text-white/90 hover:text-white transition ${
+                  isActive(item.href)
+                    ? "font-semibold text-white"
+                    : ""
                 }`}
                 aria-current={isActive(item.href) ? "page" : undefined}
               >
@@ -88,7 +89,7 @@ export default function MainHeader() {
             {/* Categories dropdown */}
             <div className="relative group">
               <button
-                className="nav-link inline-flex items-center gap-1"
+                className="text-white/90 hover:text-white transition inline-flex items-center gap-1"
                 type="button"
               >
                 {t.common.categories}{" "}
@@ -108,18 +109,22 @@ export default function MainHeader() {
             </div>
           </nav>
 
-          {/* Call + Cart */}
-          <a href="tel:+243848994045" className="btn-ghost">
+          {/* Call Now button */}
+          <a
+            href="tel:+243848994045"
+            className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/20 transition"
+          >
             <Phone size={18} />
             {t.common.call_now}
           </a>
 
+          {/* Cart Indicator with badge */}
           <CartIndicator />
         </div>
 
         {/* Mobile hamburger */}
         <button
-          className="lg:hidden p-2 rounded-md bg-white/15 hover:bg-white/25"
+          className="lg:hidden p-2 rounded-md bg-white/15 hover:bg-white/25 transition"
           onClick={() => setMobileOpen(true)}
           aria-label="Open menu"
           type="button"
@@ -128,16 +133,17 @@ export default function MainHeader() {
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-[60]">
-          {/* overlay */}
+        <div className="lg:hidden fixed inset-0 z-[2000]">
+          {/* dark overlay */}
           <button
             className="absolute inset-0 bg-black/60"
             onClick={() => setMobileOpen(false)}
-            aria-label="Close menu"
+            aria-label="Close menu overlay"
           />
-          {/* drawer */}
+
+          {/* drawer panel */}
           <div className="absolute right-0 top-0 h-full w-[86%] max-w-sm bg-zinc-950 text-white border-l border-white/10 shadow-2xl p-4 flex flex-col">
             <div className="flex items-center justify-between">
               <LocaleLink
@@ -155,7 +161,7 @@ export default function MainHeader() {
               <button
                 className="p-2 rounded-lg hover:bg-white/10"
                 onClick={() => setMobileOpen(false)}
-                aria-label="Close"
+                aria-label="Close menu"
                 type="button"
               >
                 <X />
@@ -223,16 +229,15 @@ export default function MainHeader() {
             <div className="mt-auto pt-4 space-y-3">
               <a
                 href="tel:+243848994045"
-                className="btn-ghost w-full justify-center"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/20 transition"
               >
                 <Phone size={18} />
                 {t.common.call_now}
               </a>
 
-              {/* Cart in mobile drawer */}
               <CartIndicator className="w-full justify-center flex" />
 
-              <p className="text-xs text-white/50 text-center">
+              <p className="text-xs text-white/50 text-center leading-relaxed">
                 {t.common.address_line1}, {t.common.address_line2},{" "}
                 {t.common.address_city}
               </p>

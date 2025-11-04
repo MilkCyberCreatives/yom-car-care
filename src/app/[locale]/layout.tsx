@@ -1,22 +1,22 @@
-// src/app/[locale]/layout.tsx
-import type { Metadata } from "next";
+import "../globals.css";
+import { I18nProvider } from "@/hooks/useI18n";
+import TopBar from "@/app/components/TopBar";
+import MainHeader from "@/app/components/MainHeader";
 
-export const metadata: Metadata = {
-  title: "YOM Car Care",
-  description: "Premium car care products.",
-  openGraph: {
-    type: "website",
-    title: "YOM Car Care",
-    description: "Premium car care products.",
-    url: "https://yomcarcare.com",
-  },
-};
-
-/**
- * IMPORTANT:
- * No <html> or <body> here. Root layout owns them and wraps with CartProvider.
- * This keeps your original page structure/styles exactly as before.
- */
-export default function LocaleLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default function LocaleLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="fr">
+      <body className="bg-black text-white antialiased">
+        <I18nProvider>
+          <TopBar />
+          <MainHeader />
+          {children}
+        </I18nProvider>
+      </body>
+    </html>
+  );
 }

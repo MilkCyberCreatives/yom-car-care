@@ -1,0 +1,34 @@
+{
+  "common": {
+    "call_now": "Appeler",
+    "search_placeholder": "Rechercher un produit…",
+    "browse_products": "Voir les produits",
+    "address_line1": "538 Avenue Kipopo",
+    "address_line2": "Golf Malela",
+    "address_city": "Lubumbashi",
+    "language": "Langue",
+    "english": "Anglais",
+    "french": "Français",
+    "cart": "Panier"
+  },
+  "hero": {
+    "title_1": "Produits d'entretien auto à ",
+    "title_highlight": "Lubumbashi. ",
+    "title_2": "Extérieur, intérieur, detailing & accessoires.",
+    "subtitle": "Des produits de qualité professionnelle pour protéger, nettoyer et faire briller votre voiture. Demandez-nous quoi utiliser pour la carrosserie, l'habitacle, les pneus, les plastiques, etc.",
+    "french_hint": "Service disponible en français 🇫🇷"
+  },
+  "cats": {
+    "exterior": "Extérieur",
+    "interior": "Intérieur",
+    "air": "Parfums / Désodorisants",
+    "detailing": "Finition / Detailing",
+    "accessories": "Accessoires"
+  },
+  "nav": {
+    "products": "Produits",
+    "about": "À propos",
+    "contact": "Contact",
+    "categories": "Catégories"
+  }
+}

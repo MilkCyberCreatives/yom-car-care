@@ -1,58 +1,64 @@
+// src/app/components/TopBar.tsx
 "use client";
 
 import { usePathname } from "next/navigation";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { useI18n } from "@/hooks/useI18n";
 
-/**
- * Note: For the language toggle, we use raw <a> anchors so we can
- * freely build absolute hrefs without hitting typedRoutes on Link.
- * All navigation remains instant due to Next.js client routing.
- */
 export default function TopBar() {
   const pathname = usePathname() || "/";
   const { t } = useI18n();
 
+  // language links
   const toEN = pathname.replace(/^\/fr/, "") || "/";
   const toFR = pathname.startsWith("/fr") ? pathname : `/fr${pathname}`;
-
   const isEN = !pathname.startsWith("/fr");
 
   return (
-    <div className="w-full header-glass">
-      <div className="container-px flex items-center justify-between py-2 text-[13px]">
-        {/* Left: contact info */}
-        <div className="hidden md:flex items-center gap-4 text-white/70">
+    <div className="w-full bg-black text-white/80 text-[13px] border-b border-white/10">
+      <div className="container-px flex flex-col gap-2 py-2 md:flex-row md:items-center md:justify-between">
+        {/* left side: address / phone / email */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="inline-flex items-center gap-1">
-            <MapPin size={14} />
-            {t.common.address_line1}, {t.common.address_line2}, {t.common.address_city}
+            <MapPin size={14} className="text-white/60" />
+            {t.common.address_line1}, {t.common.address_line2},{" "}
+            {t.common.address_city}
           </span>
-          <a href="tel:+243848994045" className="inline-flex items-center gap-1 hover:text-white">
-            <Phone size={14} /> +243 84 899 4045
+
+          <a
+            href="tel:+243848994045"
+            className="inline-flex items-center gap-1 hover:text-white"
+          >
+            <Phone size={14} className="text-white/60" />
+            +243 84 899 4045
           </a>
+
           <a
             href={`mailto:${t.common.email}`}
             className="inline-flex items-center gap-1 hover:text-white"
           >
-            <Mail size={14} /> {t.common.email}
+            <Mail size={14} className="text-white/60" />
+            {t.common.email}
           </a>
         </div>
 
-        <div className="flex-1 md:flex-none" />
-
-        {/* Right: language toggle */}
-        <div className="flex items-center gap-2 text-xs md:text-sm">
+        {/* right side: EN / FR */}
+        <div className="flex items-center gap-2 text-white text-xs md:text-[13px]">
           <a
             href={toEN}
-            className={`hover:underline ${isEN ? "font-semibold" : ""}`}
+            className={`hover:underline ${
+              isEN ? "font-semibold text-white" : "text-white/70"
+            }`}
             aria-current={isEN ? "true" : undefined}
           >
             EN
           </a>
-          <span aria-hidden>•</span>
+          <span className="text-white/40">•</span>
           <a
             href={toFR}
-            className={`hover:underline ${!isEN ? "font-semibold" : ""}`}
+            className={`hover:underline ${
+              !isEN ? "font-semibold text-white" : "text-white/70"
+            }`}
             aria-current={!isEN ? "true" : undefined}
           >
             FR
