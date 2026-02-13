@@ -1,45 +1,67 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { getAllProducts, firstImage } from "@/lib/products";
+import { getAllProducts, firstImage, catSlug } from "@/lib/products";
 import { formatProductPrice } from "@/lib/money";
+import AddToCartButton from "@/app/components/AddToCartButton";
 
-export const metadata: Metadata = {
-  title: "Products | YOM Car Care",
-  description: "Browse all YOM Car Care products.",
-};
+type Params = { params: { locale: string } };
 
-export default function ProductsPageLocale() {
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const isFR = params.locale === "fr";
+  return {
+    title: isFR ? "Produits | YOM Car Care" : "Products | YOM Car Care",
+    description: isFR
+      ? "Parcourez tous les produits YOM Car Care."
+      : "Browse all YOM Car Care products.",
+  };
+}
+
+export default function ProductsPageLocale({ params }: Params) {
+  const isFR = params.locale === "fr";
   const items = getAllProducts();
+
+  const copy = isFR
+    ? {
+        kicker: "NOS CHOIX",
+        title: "Produits en vedette",
+        emptyTitle: "Aucun produit trouve.",
+        emptyDesc: "Ajoutez des images dans public/products et verifiez les donnees produit.",
+      }
+    : {
+        kicker: "OUR PICKS",
+        title: "Featured Products",
+        emptyTitle: "No products found.",
+        emptyDesc: "Add images to public/products and ensure your product data is set.",
+      };
 
   return (
     <main className="container-px py-10">
       <header className="mb-6">
-        <p className="text-xs tracking-[0.2em] text-white/60">OUR PICKS</p>
-        <h1 className="text-3xl md:text-4xl font-bold">Featured Products</h1>
+        <p className="text-xs tracking-[0.2em] text-white/60">{copy.kicker}</p>
+        <h1 className="text-3xl font-bold md:text-4xl">{copy.title}</h1>
       </header>
 
       {items.length === 0 ? (
-        <div className="text-center text-gray-600 py-16">
-          <p className="text-lg font-medium">No products found.</p>
-          <p className="mt-1">
-            Add images to <code className="font-mono">public/products</code> and ensure your data is set.
-          </p>
+        <div className="py-16 text-center text-gray-600">
+          <p className="text-lg font-medium">{copy.emptyTitle}</p>
+          <p className="mt-1">{copy.emptyDesc}</p>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((p) => {
             const img = firstImage(p);
-            const href = `/products/${p.category.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}/${p.slug}`;
-            const price = formatProductPrice(p); // <-- USD here
+            const categorySlug = catSlug(p.category);
+            const href = `/${params.locale}/products/${categorySlug}/${p.slug}`;
+            const price = formatProductPrice(p, isFR ? "fr-FR" : "en-US");
 
             return (
               <li
                 key={p.slug}
-                className="group rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 text-white"
+                className="group overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 text-white"
               >
                 <Link href={href} className="block">
-                  <div className="relative bg-white aspect-[4/3]">
+                  <div className="relative aspect-[4/3] bg-white">
                     <Image
                       src={img}
                       alt={p.name}
@@ -50,33 +72,23 @@ export default function ProductsPageLocale() {
                   </div>
                 </Link>
 
-                <div className="px-5 py-4 bg-zinc-900 border-t border-white/10">
+                <div className="border-t border-white/10 bg-zinc-900 px-5 py-4">
                   <div className="flex items-start gap-3">
                     <Link href={href} className="flex-1">
-                      <h3 className="font-semibold leading-snug line-clamp-2">
-                        {p.name}
-                      </h3>
+                      <h3 className="line-clamp-2 font-semibold leading-snug">{p.name}</h3>
                     </Link>
 
-                    <button
-                      type="button"
-                      aria-label="Add to cart"
-                      className="shrink-0 grid place-items-center rounded-full border border-white/10 bg-zinc-800/70 p-2 hover:bg-zinc-800 transition"
-                    >
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                      >
-                        <path d="M6 6h15l-1.5 9h-12z" />
-                        <path d="M6 6l-1-2H3" />
-                        <circle cx="9" cy="20" r="1.5" />
-                        <circle cx="18" cy="20" r="1.5" />
-                      </svg>
-                    </button>
+                    <AddToCartButton
+                      variant="icon"
+                      product={{
+                        slug: p.slug,
+                        categorySlug,
+                        name: p.name,
+                        price: typeof p.price === "number" ? p.price : undefined,
+                        currency: p.currency,
+                        img,
+                      }}
+                    />
                   </div>
 
                   <div className="mt-3 flex items-center justify-between">
@@ -86,7 +98,7 @@ export default function ProductsPageLocale() {
                     {price ? (
                       <span className="text-sm font-semibold text-white/80">{price}</span>
                     ) : (
-                      <span className="text-sm text-white/50">—</span>
+                      <span className="text-sm text-white/50">-</span>
                     )}
                   </div>
                 </div>

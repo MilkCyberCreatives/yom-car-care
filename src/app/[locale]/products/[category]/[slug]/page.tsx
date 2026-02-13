@@ -79,25 +79,6 @@ export default function ProductPage({ params }: { params: Params }) {
 
   return (
     <main className="container-px py-8 md:py-10">
-      {/* Breadcrumbs */}
-      <nav className="mb-6 text-sm text-white/60">
-        <Link
-          href={`/${params.locale}/products`}
-          className="hover:underline"
-        >
-          Products
-        </Link>
-        <span className="mx-2">/</span>
-        <Link
-          href={`/${params.locale}/products/${categorySlug}`}
-          className="capitalize hover:underline"
-        >
-          {categorySlug.replace(/-/g, " ")}
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-white/80">{product.name}</span>
-      </nav>
-
       {/* Top section: image + summary */}
       <section className="grid gap-6 md:grid-cols-2">
         {/* Image */}

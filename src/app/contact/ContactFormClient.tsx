@@ -3,9 +3,21 @@
 import { useState } from "react";
 import { useI18n } from "@/hooks/useI18n";
 
-export default function ContactFormClient({ className = "" }: { className?: string }) {
+type ContactFormClientProps = {
+  className?: string;
+  borderStyle?: "full" | "top-bottom";
+};
+
+export default function ContactFormClient({
+  className = "",
+  borderStyle = "full",
+}: ContactFormClientProps) {
   const { locale } = useI18n();
   const isFR = locale === "fr";
+  const controlClass =
+    borderStyle === "top-bottom"
+      ? "w-full border-y border-x-0 rounded-none border-white/20 bg-transparent px-3 py-2 text-white placeholder-white/45 focus:outline-none focus:ring-0 focus:border-white/40"
+      : "w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20";
 
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [err, setErr] = useState<string>("");
@@ -67,7 +79,7 @@ export default function ContactFormClient({ className = "" }: { className?: stri
           <input
             name="name"
             required
-            className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+            className={controlClass}
             placeholder={copy.namePlaceholder}
           />
         </div>
@@ -77,7 +89,7 @@ export default function ContactFormClient({ className = "" }: { className?: stri
             type="email"
             name="email"
             required
-            className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+            className={controlClass}
             placeholder={copy.emailPlaceholder}
           />
         </div>
@@ -85,7 +97,7 @@ export default function ContactFormClient({ className = "" }: { className?: stri
           <label className="block text-sm text-white/70 mb-1">{copy.phone}</label>
           <input
             name="phone"
-            className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+            className={controlClass}
             placeholder={copy.phonePlaceholder}
           />
         </div>
@@ -93,7 +105,7 @@ export default function ContactFormClient({ className = "" }: { className?: stri
           <label className="block text-sm text-white/70 mb-1">{copy.subject}</label>
           <input
             name="subject"
-            className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+            className={controlClass}
             placeholder={copy.subjectPlaceholder}
             defaultValue={copy.subjectDefault}
           />
@@ -104,7 +116,7 @@ export default function ContactFormClient({ className = "" }: { className?: stri
             name="message"
             required
             rows={5}
-            className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+            className={controlClass}
             placeholder={copy.messagePlaceholder}
           />
         </div>

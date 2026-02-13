@@ -20,6 +20,7 @@ function prefersReducedMotion() {
 }
 
 export default function HeaderShell() {
+  const shellRef = useRef<HTMLDivElement | null>(null);
   const lastYRef = useRef(0);
   const tickingRef = useRef(false);
 
@@ -68,8 +69,35 @@ export default function HeaderShell() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const shell = shellRef.current;
+    if (!shell) return;
+
+    const applyHeightVar = () => {
+      const h = shell.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--site-header-h", `${Math.max(0, Math.round(h))}px`);
+    };
+
+    applyHeightVar();
+
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => applyHeightVar())
+        : null;
+    ro?.observe(shell);
+
+    window.addEventListener("resize", applyHeightVar, { passive: true });
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", applyHeightVar);
+      document.documentElement.style.removeProperty("--site-header-h");
+    };
+  }, []);
+
   return (
     <div
+      ref={shellRef}
       className={[
         "sticky top-0 z-[9999]",
         "transition-all duration-300",

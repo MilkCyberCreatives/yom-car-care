@@ -24,6 +24,21 @@ const AUTOPLAY_MS = 5000;
 export default function Hero() {
   const { locale } = useI18n();
   const isFR = locale === "fr";
+  const heroCopy = isFR
+    ? {
+        kicker: "YOM Car Care Lubumbashi",
+        heading: "Transformez votre voiture en vitrine roulante.",
+        subheading:
+          "Produits premium, conseils experts et paiement a la livraison pour garder chaque vehicule impeccable.",
+        scroll: "Defiler",
+      }
+    : {
+        kicker: "YOM Car Care Lubumbashi",
+        heading: "Turn your car into a moving showroom.",
+        subheading:
+          "Premium products, expert guidance, and cash-on-delivery convenience to keep every vehicle spotless.",
+        scroll: "Scroll",
+      };
 
   const reduceMotion = useReducedMotion();
 
@@ -75,14 +90,14 @@ export default function Hero() {
   );
 
   const scrollToNext = useCallback(() => {
-    // Scroll to the next section below the hero (smooth)
-    const h = window.innerHeight || 800;
-    window.scrollTo({ top: h - 4, behavior: "smooth" });
+    const hero = document.querySelector<HTMLElement>('[aria-label="Hero slideshow"]');
+    const heroHeight = hero?.offsetHeight || window.innerHeight || 800;
+    window.scrollTo({ top: heroHeight - 4, behavior: "smooth" });
   }, []);
 
   return (
     <section
-      className="relative min-h-[100svh] w-full overflow-hidden bg-black"
+      className="relative min-h-[calc(100svh-var(--site-header-h,0px)-var(--site-breadcrumb-h,0px))] w-full overflow-hidden bg-black"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
@@ -149,17 +164,39 @@ export default function Hero() {
         {/* Depth/vignette effects */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(100%_60%_at_50%_40%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.45)_70%,rgba(0,0,0,0.75)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent via-black/25 to-zinc-950" />
+      </div>
+
+      {/* Hero sales caption */}
+      <div className="absolute inset-0 z-20">
+        <div className="container-px flex h-full items-center justify-center pb-40 md:justify-end md:pb-48">
+          <div className="max-w-2xl text-center md:pr-6 md:text-left lg:pr-10">
+            <p className="text-xs uppercase tracking-[0.16em] text-white/80">{heroCopy.kicker}</p>
+            <h1
+              className="mt-3 text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl"
+              style={{ textShadow: "0 8px 28px rgba(0,0,0,0.75)" }}
+            >
+              {heroCopy.heading}
+            </h1>
+            <p
+              className="mt-3 max-w-xl text-sm text-white/90 sm:text-base"
+              style={{ textShadow: "0 6px 22px rgba(0,0,0,0.68)" }}
+            >
+              {heroCopy.subheading}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ✅ Scroll indicator (premium + requested scroll effect) */}
       <button
         type="button"
         onClick={scrollToNext}
-        className="group absolute bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full border border-white/15 bg-black/35 px-4 py-2 text-white/90 backdrop-blur hover:bg-black/50 transition"
+        className="group absolute bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border border-white/15 bg-black/35 px-4 py-2 text-white/90 backdrop-blur transition hover:bg-black/50 sm:bottom-6"
         aria-label={isFR ? "Aller a la section suivante" : "Scroll to next section"}
       >
         <span className="inline-flex items-center gap-2 text-sm">
-          <span className="hidden sm:inline">{isFR ? "Defiler" : "Scroll"}</span>
+          <span className="hidden sm:inline">{heroCopy.scroll}</span>
           <motion.span
             animate={reduceMotion ? undefined : { y: [0, 6, 0] }}
             transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
