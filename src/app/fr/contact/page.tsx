@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import ContactFormClient from "../../contact/ContactFormClient";
 
 export const metadata: Metadata = {
@@ -23,45 +23,26 @@ const HOURS: { day: string; time: string }[] = [
 export default function ContactPageFR() {
   return (
     <main className="flex flex-col">
-      <section className="relative overflow-hidden bg-[var(--brand-blue)] text-white">
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,255,255,0.15),transparent_50%)]" />
-        <div className="container-px py-14 md:py-18 relative">
-          <div className="max-w-3xl">
-            <p className="uppercase tracking-wide text-white/70 text-xs mb-2">Contact YOM Car Care</p>
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">Nous sommes la pour vous aider</h1>
-            <p className="mt-3 text-white/80 max-w-xl">
-              Besoin d'une recommandation pour l'exterieur, l'interieur ou le detailing ? Ecrivez-nous.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <a href={`tel:${PHONE_TEL}`} className="btn-ghost">{PHONE_DISPLAY}</a>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
-                WhatsApp
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="container-px py-10 md:py-14">
-        <div className="grid lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-zinc-900 text-white p-6">
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="space-y-6 lg:col-span-2">
+            <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white">
               <h2 className="text-xl font-semibold">Coordonnees</h2>
               <div className="mt-4 space-y-3 text-white/80">
                 <p>
-                  <span className="block text-white/60 text-xs">Telephone</span>
+                  <span className="block text-xs text-white/60">Telephone</span>
                   <a href={`tel:${PHONE_TEL}`} className="hover:underline">
                     {PHONE_DISPLAY}
                   </a>
                 </p>
                 <p>
-                  <span className="block text-white/60 text-xs">Email</span>
+                  <span className="block text-xs text-white/60">Email</span>
                   <a href={`mailto:${EMAIL}`} className="hover:underline">
                     {EMAIL}
                   </a>
                 </p>
                 <p>
-                  <span className="block text-white/60 text-xs">Adresse</span>
+                  <span className="block text-xs text-white/60">Adresse</span>
                   {ADDRESS_TEXT}
                 </p>
               </div>
@@ -76,7 +57,7 @@ export default function ContactPageFR() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-zinc-900 text-white p-6">
+            <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white">
               <h3 className="text-lg font-semibold">Heures d'ouverture</h3>
               <ul className="mt-3 space-y-2">
                 {HOURS.map((h) => (
@@ -90,11 +71,9 @@ export default function ContactPageFR() {
           </div>
 
           <div className="lg:col-span-3">
-            <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 md:p-8 text-white">
-              <h2 className="text-xl md:text-2xl font-semibold">Envoyez-nous un message</h2>
-              <p className="text-white/70 mt-1 text-sm">
-                Dites-nous ce dont vous avez besoin.
-              </p>
+            <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white md:p-8">
+              <h2 className="text-xl font-semibold md:text-2xl">Envoyez-nous un message</h2>
+              <p className="mt-1 text-sm text-white/70">Dites-nous ce dont vous avez besoin.</p>
               <div className="mt-6">
                 <ContactFormClient />
               </div>

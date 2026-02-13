@@ -189,25 +189,6 @@ export default function AboutPage({ params }: PageProps) {
 
   return (
     <main>
-      <section className="relative border-b border-white/10 bg-[radial-gradient(65%_120%_at_50%_-20%,_rgba(0,115,228,0.25),_transparent)]">
-        <div className="container-px py-14 md:py-20">
-          <p className="text-[13px] uppercase tracking-widest text-white/70">{copy.bannerKicker}</p>
-          <h1 className="mt-2 text-3xl font-semibold leading-tight md:text-5xl">
-            {copy.bannerTitle}
-          </h1>
-          <p className="mt-4 max-w-2xl text-white/70">{copy.bannerDesc}</p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a href="tel:+243848994045" className="btn-primary">
-              {copy.callCta}
-            </a>
-            <Link href={l("/products")} className="btn-ghost">
-              {copy.browseCta}
-            </Link>
-          </div>
-        </div>
-      </section>
-
       <section className="container-px py-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {copy.stats.map((item) => (

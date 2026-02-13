@@ -2,10 +2,19 @@
 
 import ContactFormClient from "@/app/contact/ContactFormClient";
 import { useI18n } from "@/hooks/useI18n";
+import { usePathname } from "next/navigation";
 
 export default function PreFooterContact() {
+  const pathname = usePathname() || "/";
   const { locale } = useI18n();
   const isFR = locale === "fr";
+
+  const parts = pathname.split("/").filter(Boolean);
+  const [maybeLocale, ...rest] = parts;
+  const route = maybeLocale === "en" || maybeLocale === "fr" ? rest : parts;
+  const isContactPage = route.length === 1 && route[0] === "contact";
+
+  if (isContactPage) return null;
 
   const copy = isFR
     ? {

@@ -4,6 +4,7 @@ import HeaderShell from "@/app/components/HeaderShell";
 import Footer from "@/app/components/Footer";
 import ScrollToTop from "@/app/components/ScrollToTop";
 import BreadcrumbBar from "@/app/components/BreadcrumbBar";
+import PageMasthead from "@/app/components/PageMasthead";
 import PreFooterContact from "@/app/components/PreFooterContact";
 import { I18nProvider } from "@/hooks/useI18n";
 import type { Locale } from "@/i18n/config";
@@ -18,6 +19,7 @@ export default function SiteShell({ locale, children }: SiteShellProps) {
     <I18nProvider locale={locale}>
       <HeaderShell />
       <BreadcrumbBar />
+      <PageMasthead />
       <div className="min-h-[60vh]">{children}</div>
       <PreFooterContact />
       <Footer />
