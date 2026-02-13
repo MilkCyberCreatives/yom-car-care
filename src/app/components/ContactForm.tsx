@@ -12,6 +12,7 @@ export default function ContactForm() {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   const disabled = status === "submitting";
 
@@ -19,6 +20,7 @@ export default function ContactForm() {
     e.preventDefault();
     setStatus("submitting");
     setError("");
+    setSuccessMessage("");
 
     try {
       const res = await fetch("/api/contact", {
@@ -31,23 +33,12 @@ export default function ContactForm() {
 
       if (res.ok && data.ok) {
         setStatus("success");
+        setSuccessMessage(String(data.message || "Thanks! We have received your message."));
         setName("");
         setEmail("");
         setPhone("");
         setSubject("");
         setMessage("");
-        return;
-      }
-
-      // Fallback: open mail client with prefilled content
-      if (data?.fallback) {
-        const mailto = buildMailto({
-          to: "info@yomcarcare.com",
-          subject: subject || `New enquiry from ${name}`,
-          body: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nMessage:\n${message}\n\n----\nSent from yomcarcare.com`,
-        });
-        window.location.href = mailto;
-        setStatus("idle");
         return;
       }
 
@@ -123,9 +114,7 @@ export default function ContactForm() {
         </a>
       </div>
 
-      {status === "success" && (
-        <p className="text-sm text-green-400">Thanks! Your message has been sent.</p>
-      )}
+      {status === "success" && <p className="text-sm text-green-400">{successMessage}</p>}
       {status === "error" && <p className="text-sm text-red-400">{error}</p>}
 
       <p className="text-xs text-white/50">
@@ -133,9 +122,4 @@ export default function ContactForm() {
       </p>
     </form>
   );
-}
-
-function buildMailto({ to, subject, body }: { to: string; subject: string; body: string }) {
-  const enc = (s: string) => encodeURIComponent(s);
-  return `mailto:${to}?subject=${enc(subject)}&body=${enc(body)}`;
 }

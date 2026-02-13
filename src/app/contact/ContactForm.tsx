@@ -40,9 +40,19 @@ export default function ContactForm() {
       body: JSON.stringify({ name, email, phone, subject, message }),
     })
 
-    if (!res.ok) {
-      const t = await res.text()
-      setErr(t || 'Something went wrong. Please try again.')
+    let payload: any = null
+    try {
+      payload = await res.json()
+    } catch {
+      payload = null
+    }
+
+    if (!res.ok || !payload?.ok) {
+      const serverErr =
+        (payload?.error as string) ||
+        (payload?.message as string) ||
+        'Something went wrong. Please try again.'
+      setErr(serverErr)
       setState('error')
       return
     }

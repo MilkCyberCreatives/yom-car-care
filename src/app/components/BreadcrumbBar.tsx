@@ -117,9 +117,9 @@ export default function BreadcrumbBar() {
   if (crumbs.length <= 1) return null;
 
   return (
-    <div ref={barRef} className="bg-black/20">
+    <div ref={barRef} className="bg-transparent">
       <nav
-        className="container-px py-2 text-sm text-white/70"
+        className="container-px py-3 text-sm text-white/75"
         aria-label={isFR ? "Fil d Ariane" : "Breadcrumb"}
       >
         {crumbs.map((c, idx) => {
@@ -128,13 +128,13 @@ export default function BreadcrumbBar() {
             <Fragment key={c.href}>
               {!isLast ? (
                 <>
-                  <Link href={c.href} className="hover:underline">
+                  <Link href={c.href} className="transition hover:text-white">
                     {c.label}
                   </Link>
-                  <span className="mx-2">/</span>
+                  <span className="mx-2 text-white/45">/</span>
                 </>
               ) : (
-                <span aria-current="page" className="text-white">
+                <span aria-current="page" className="font-medium text-white">
                   {c.label}
                 </span>
               )}

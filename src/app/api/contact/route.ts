@@ -20,6 +20,11 @@ async function getTransporter() {
   const {
     SMTP_URL,
     EMAIL_SERVER_URL, // alias
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_SECURE,
+    SMTP_USER,
+    SMTP_PASS,
     EMAIL_SERVER_HOST,
     EMAIL_SERVER_PORT,
     EMAIL_SERVER_USER,
@@ -30,21 +35,28 @@ async function getTransporter() {
     return createTransport(SMTP_URL || EMAIL_SERVER_URL);
   }
 
-  if (EMAIL_SERVER_HOST && EMAIL_SERVER_PORT && EMAIL_SERVER_USER && EMAIL_SERVER_PASS) {
-    return createTransport({
-      host: EMAIL_SERVER_HOST,
-      port: Number(EMAIL_SERVER_PORT),
-      secure: Number(EMAIL_SERVER_PORT) === 465, // TLS on 465
-      auth: {
-        user: EMAIL_SERVER_USER,
-        pass: EMAIL_SERVER_PASS,
-      },
-    });
+  const host = SMTP_HOST || EMAIL_SERVER_HOST || "mail.yomcarcare.com";
+  const port = Number(SMTP_PORT || EMAIL_SERVER_PORT || 465);
+  const user = SMTP_USER || EMAIL_SERVER_USER || "info@yomcarcare.com";
+  const pass = SMTP_PASS || EMAIL_SERVER_PASS;
+  const secure =
+    typeof SMTP_SECURE === "string"
+      ? SMTP_SECURE.toLowerCase() === "true"
+      : port === 465;
+
+  if (!pass || pass === "YOUR_MAILBOX_PASSWORD") {
+    throw new Error("Missing SMTP password. Set SMTP_PASS (or EMAIL_SERVER_PASS) to your mailbox password.");
   }
 
-  // As a convenience, fall back to local sendmail if present on the host
-  // (works on many Linux hosts; harmless if unavailable).
-  return createTransport({ sendmail: true, newline: "unix", path: "/usr/sbin/sendmail" });
+  return createTransport({
+    host,
+    port,
+    secure,
+    auth: {
+      user,
+      pass,
+    },
+  });
 }
 
 function renderHtml({
@@ -97,8 +109,7 @@ export async function POST(req: Request) {
 
     // Configure recipient + sender
     const TO = process.env.CONTACT_TO || "info@yomcarcare.com";
-    const FROM =
-      process.env.CONTACT_FROM || `YOM Car Care <no-reply@yomcarcare.com>`;
+    const FROM = process.env.CONTACT_FROM || `YOM Car Care <info@yomcarcare.com>`;
 
     const transporter = await getTransporter();
 
@@ -111,11 +122,38 @@ export async function POST(req: Request) {
       html: renderHtml({ name, email, phone, subject, message }),
     });
 
-    return NextResponse.json({ ok: true });
+    // Auto-acknowledgement to sender
+    try {
+      await transporter.sendMail({
+        from: FROM,
+        to: email,
+        subject: "We received your message - YOM Car Care",
+        text:
+          "Hello,\n\nWe have received your message and will get back to you shortly.\n\n" +
+          "Bonjour,\n\nNous avons bien recu votre message et nous vous repondrons rapidement.\n\n" +
+          "YOM Car Care",
+        html: `
+          <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.6;">
+            <p>Hello,</p>
+            <p>We have received your message and will get back to you shortly.</p>
+            <p>Bonjour,</p>
+            <p>Nous avons bien recu votre message et nous vous repondrons rapidement.</p>
+            <p>YOM Car Care</p>
+          </div>
+        `,
+      });
+    } catch (ackErr) {
+      console.error("Contact API acknowledgement email failed:", ackErr);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      message: "We received your email and will reply shortly. / Nous avons bien recu votre email et nous vous repondrons rapidement.",
+    });
   } catch (err: any) {
     console.error("Contact API error:", err);
     return NextResponse.json(
-      { ok: false, error: "Failed to send message." },
+      { ok: false, error: err?.message || "Failed to send message." },
       { status: 500 }
     );
   }

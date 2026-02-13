@@ -169,17 +169,17 @@ export default function Hero() {
 
       {/* Hero sales caption */}
       <div className="absolute inset-0 z-20">
-        <div className="container-px flex h-full items-center justify-center pb-40 md:justify-end md:pb-48">
-          <div className="max-w-2xl text-center md:pr-6 md:text-left lg:pr-10">
+        <div className="container-px flex h-full items-center justify-center">
+          <div className="mx-auto max-w-2xl -translate-y-10 text-center sm:-translate-y-12 md:-translate-y-16">
             <p className="text-xs uppercase tracking-[0.16em] text-white/80">{heroCopy.kicker}</p>
             <h1
-              className="mt-3 text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl"
+              className="mt-3 text-3xl font-bold leading-[1.08] tracking-tight text-white sm:text-4xl md:text-5xl"
               style={{ textShadow: "0 8px 28px rgba(0,0,0,0.75)" }}
             >
               {heroCopy.heading}
             </h1>
             <p
-              className="mt-3 max-w-xl text-sm text-white/90 sm:text-base"
+              className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base md:text-lg"
               style={{ textShadow: "0 6px 22px rgba(0,0,0,0.68)" }}
             >
               {heroCopy.subheading}

@@ -21,6 +21,7 @@ export default function ContactFormClient({
 
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [err, setErr] = useState<string>("");
+  const [okMsg, setOkMsg] = useState<string>("");
 
   const copy = {
     name: isFR ? "Nom *" : "Name *",
@@ -46,6 +47,7 @@ export default function ContactFormClient({
     e.preventDefault();
     setStatus("sending");
     setErr("");
+    setOkMsg("");
 
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -62,6 +64,7 @@ export default function ContactFormClient({
       if (!res.ok || !json.ok) throw new Error(json.error || "Failed");
 
       setStatus("ok");
+      setOkMsg(String(json.message || copy.ok));
       form.reset();
     } catch (e: any) {
       setStatus("error");
@@ -126,7 +129,7 @@ export default function ContactFormClient({
         <button type="submit" disabled={status === "sending"} className="btn-primary disabled:opacity-60">
           {status === "sending" ? copy.sending : copy.send}
         </button>
-        {status === "ok" && <span className="text-emerald-400 text-sm">{copy.ok}</span>}
+        {status === "ok" && <span className="text-emerald-400 text-sm">{okMsg || copy.ok}</span>}
         {status === "error" && (
           <span className="text-red-400 text-sm">
             {copy.error}: {err}
