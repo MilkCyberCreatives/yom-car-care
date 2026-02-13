@@ -1,4 +1,4 @@
-// Home *does* export `metadata`, so mirror it
-import Home, { metadata as _metadata } from '../page'
-export default Home
-export const metadata = _metadata
+import Home, { metadata } from "../[locale]/page";
+
+export default Home;
+export { metadata };

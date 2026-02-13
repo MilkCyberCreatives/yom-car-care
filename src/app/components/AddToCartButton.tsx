@@ -2,6 +2,7 @@
 
 import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/hooks/useI18n";
 
 export type CartPayload = {
   slug: string;
@@ -24,7 +25,11 @@ export default function AddToCartButton({
   variant = "icon",
   className = "",
 }: Props) {
+  const { locale } = useI18n();
+  const isFR = locale === "fr";
   const [added, setAdded] = useState(false);
+  const addToCartLabel = isFR ? "Ajouter au panier" : "Add to cart";
+  const addedLabel = isFR ? "Ajoute" : "Added!";
 
   function handleClick() {
     try {
@@ -75,11 +80,11 @@ export default function AddToCartButton({
       <button
         type="button"
         onClick={handleClick}
-        aria-label="Add to cart"
+        aria-label={addToCartLabel}
         className={`btn-primary flex items-center gap-2 ${className}`}
       >
         <ShoppingCart className="h-4 w-4" />
-        {added ? "Added!" : "Add to cart"}
+        {added ? addedLabel : addToCartLabel}
       </button>
     );
   }
@@ -89,11 +94,11 @@ export default function AddToCartButton({
       <button
         type="button"
         onClick={handleClick}
-        aria-label="Add to cart"
+        aria-label={addToCartLabel}
         className={`btn-ghost flex items-center gap-2 ${className}`}
       >
         <ShoppingCart className="h-4 w-4" />
-        {added ? "Added!" : "Add to cart"}
+        {added ? addedLabel : addToCartLabel}
       </button>
     );
   }
@@ -103,7 +108,7 @@ export default function AddToCartButton({
     <button
       type="button"
       onClick={handleClick}
-      aria-label="Add to cart"
+      aria-label={addToCartLabel}
       className={`shrink-0 rounded-xl border border-white/10 px-2.5 py-2 hover:bg-white/10 transition ${className}`}
     >
       <ShoppingCart className="h-4 w-4" />

@@ -1,26 +1,29 @@
+// src/hooks/useLocaleLink.tsx
 "use client";
 
 import { usePathname } from "next/navigation";
-import type { Route } from "next";
 import { useMemo } from "react";
 
-/**
- * Builds typed, locale-aware internal links.
- * Detects the current locale from the first URL segment (e.g., /en, /fr).
- *
- * Usage:
- *   const { locale, l } = useLocaleLink();
- *   <Link href={l("/products")}>Products</Link>
- */
 export default function useLocaleLink() {
-  const pathname = usePathname() || "/en";
-  const parts = pathname.split("/").filter(Boolean);
-  const supported = new Set(["en", "fr"]);
-  const locale = supported.has(parts[0] ?? "") ? (parts[0] as "en" | "fr") : "en";
+  const pathname = usePathname() || "/";
+
+  const locale = useMemo<"en" | "fr">(() => {
+    return pathname === "/fr" || pathname.startsWith("/fr/") ? "fr" : "en";
+  }, [pathname]);
 
   return useMemo(() => {
-    const l = (path: string) =>
-      (`/${locale}${path.startsWith("/") ? path : `/${path}`}`) as Route;
+    const l = (path: string) => {
+      const p = path.startsWith("/") ? path : `/${path}`;
+      const normalized = p.replace(/^\/(en|fr)(\/|$)/, "/");
+      return locale === "fr"
+        ? normalized === "/"
+          ? "/fr"
+          : `/fr${normalized}`
+        : normalized === "/"
+        ? "/en"
+        : `/en${normalized}`;
+    };
+
     return { locale, l };
   }, [locale]);
 }

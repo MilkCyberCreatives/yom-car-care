@@ -1,10 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/hooks/useI18n";
 
 export default function ContactFormClient({ className = "" }: { className?: string }) {
-  const [status, setStatus] = useState<"idle"|"sending"|"ok"|"error">("idle");
+  const { locale } = useI18n();
+  const isFR = locale === "fr";
+
+  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [err, setErr] = useState<string>("");
+
+  const copy = {
+    name: isFR ? "Nom *" : "Name *",
+    email: "Email *",
+    phone: isFR ? "Telephone" : "Phone",
+    subject: isFR ? "Sujet" : "Subject",
+    message: isFR ? "Message *" : "Message *",
+    namePlaceholder: isFR ? "Votre nom" : "Your name",
+    emailPlaceholder: isFR ? "vous@exemple.com" : "you@example.com",
+    phonePlaceholder: "+243 ...",
+    subjectPlaceholder: isFR ? "Demande produit" : "Product enquiry",
+    subjectDefault: isFR ? "Demande produit" : "Product enquiry",
+    messagePlaceholder: isFR
+      ? "Dites-nous ce dont vous avez besoin..."
+      : "Tell us what you need help with...",
+    sending: isFR ? "Envoi..." : "Sending...",
+    send: isFR ? "Envoyer le message" : "Send message",
+    ok: isFR ? "Merci ! Nous avons recu votre message." : "Thanks! We have received your message.",
+    error: isFR ? "Erreur" : "Error",
+  };
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,71 +59,66 @@ export default function ContactFormClient({ className = "" }: { className?: stri
 
   return (
     <form onSubmit={onSubmit} className={className}>
-      {/* Honeypot */}
       <input type="text" name="hp" className="hidden" tabIndex={-1} autoComplete="off" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm text-white/70 mb-1">Name *</label>
+          <label className="block text-sm text-white/70 mb-1">{copy.name}</label>
           <input
             name="name"
             required
             className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
-            placeholder="Your name"
+            placeholder={copy.namePlaceholder}
           />
         </div>
         <div>
-          <label className="block text-sm text-white/70 mb-1">Email *</label>
+          <label className="block text-sm text-white/70 mb-1">{copy.email}</label>
           <input
             type="email"
             name="email"
             required
             className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
-            placeholder="you@example.com"
+            placeholder={copy.emailPlaceholder}
           />
         </div>
         <div>
-          <label className="block text-sm text-white/70 mb-1">Phone</label>
+          <label className="block text-sm text-white/70 mb-1">{copy.phone}</label>
           <input
             name="phone"
             className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
-            placeholder="+243 ..."
+            placeholder={copy.phonePlaceholder}
           />
         </div>
         <div>
-          <label className="block text-sm text-white/70 mb-1">Subject</label>
+          <label className="block text-sm text-white/70 mb-1">{copy.subject}</label>
           <input
             name="subject"
             className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
-            placeholder="Product enquiry"
-            defaultValue="Product enquiry"
+            placeholder={copy.subjectPlaceholder}
+            defaultValue={copy.subjectDefault}
           />
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm text-white/70 mb-1">Message *</label>
+          <label className="block text-sm text-white/70 mb-1">{copy.message}</label>
           <textarea
             name="message"
             required
             rows={5}
             className="w-full rounded-xl border border-white/10 bg-zinc-800/60 px-3 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
-            placeholder="Tell us what you need help with..."
+            placeholder={copy.messagePlaceholder}
           />
         </div>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={status === "sending"}
-          className="btn-primary disabled:opacity-60"
-        >
-          {status === "sending" ? "Sending..." : "Send message"}
+        <button type="submit" disabled={status === "sending"} className="btn-primary disabled:opacity-60">
+          {status === "sending" ? copy.sending : copy.send}
         </button>
-        {status === "ok" && (
-          <span className="text-emerald-400 text-sm">Thanks! We’ve received your message.</span>
-        )}
+        {status === "ok" && <span className="text-emerald-400 text-sm">{copy.ok}</span>}
         {status === "error" && (
-          <span className="text-red-400 text-sm">Error: {err}</span>
+          <span className="text-red-400 text-sm">
+            {copy.error}: {err}
+          </span>
         )}
       </div>
     </form>

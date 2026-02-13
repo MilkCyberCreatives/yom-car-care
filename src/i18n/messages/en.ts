@@ -1,6 +1,7 @@
 const en = {
   common: {
     products: "Products",
+    brands: "Brands",
     about: "About Us",
     contact: "Contact",
     categories: "Categories",

@@ -1,9 +1,10 @@
 const fr = {
   common: {
     products: "Produits",
-    about: "À propos",
+    brands: "Marques",
+    about: "A propos",
     contact: "Contact",
-    categories: "Catégories",
+    categories: "Categories",
     call_now: "Appeler",
     email: "info@yomcarcare.com",
     address_line1: "538 Avenue Kipopo",
@@ -12,11 +13,12 @@ const fr = {
     browse_products: "Voir les produits",
   },
   cats: {
-    exterior: "Extérieur",
-    interior: "Intérieur",
-    air: "Désodorisants",
+    exterior: "Exterieur",
+    interior: "Interieur",
+    air: "Desodorisants",
     detailing: "Lustrage & Detailing",
     accessories: "Accessoires",
   },
 };
+
 export default fr;

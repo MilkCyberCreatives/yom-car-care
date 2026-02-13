@@ -1,8 +1,8 @@
+// src/app/[locale]/layout.tsx
 import "../globals.css";
-import { isLocale, type Locale, defaultLocale } from "@/i18n/config";
-import { I18nProvider } from "@/hooks/useI18n";
+import SiteShell from "@/app/components/SiteShell";
 
-export const dynamic = "force-dynamic";
+import { isLocale, type Locale, defaultLocale } from "@/i18n/config";
 
 export default function LocaleLayout({
   children,
@@ -14,13 +14,5 @@ export default function LocaleLayout({
   const raw = params?.locale;
   const locale: Locale = isLocale(raw) ? raw : defaultLocale;
 
-  return (
-    <html lang={locale}>
-      <body>
-        <I18nProvider locale={locale}>
-          {children}
-        </I18nProvider>
-      </body>
-    </html>
-  );
+  return <SiteShell locale={locale}>{children}</SiteShell>;
 }

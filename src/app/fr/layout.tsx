@@ -1,14 +1,10 @@
 // src/app/fr/layout.tsx
-import { I18nProvider } from "@/hooks/useI18n";
+import SiteShell from "@/app/components/SiteShell";
 
 export default function FRLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <I18nProvider locale="fr">
-      {children}
-    </I18nProvider>
-  );
+  return <SiteShell locale="fr">{children}</SiteShell>;
 }

@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { GA_ID, setConsent } from "@/lib/gtag";
-import Link from "@/app/components/LocaleLink"; // ✅ locale-aware internal links
+import Link from "@/app/components/LocaleLink";
+import { useI18n } from "@/hooks/useI18n";
 
 const KEY = "yom-cookie-consent:v1";
 
 export default function CookieConsent() {
+  const { locale } = useI18n();
+  const isFR = locale === "fr";
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -24,14 +27,15 @@ export default function CookieConsent() {
     <div className="fixed inset-x-0 bottom-0 z-[80]">
       <div className="mx-auto max-w-4xl rounded-t-2xl border border-white/10 bg-zinc-900/95 backdrop-blur p-4 md:p-5">
         <p className="text-sm text-white/80">
-          We use basic cookies to improve site experience and analytics. By using this site, you
-          agree to our{" "}
+          {isFR
+            ? "Nous utilisons des cookies de base pour ameliorer l'experience et les analyses. En utilisant ce site, vous acceptez notre "
+            : "We use basic cookies to improve site experience and analytics. By using this site, you agree to our "}
           <Link className="underline" href="/privacy-policy">
-            Privacy Policy
+            {isFR ? "Politique de confidentialite" : "Privacy Policy"}
           </Link>{" "}
-          and{" "}
+          {isFR ? "et " : "and "}
           <Link className="underline" href="/cookie-policy">
-            Cookie Policy
+            {isFR ? "Politique des cookies" : "Cookie Policy"}
           </Link>
           .
         </p>
@@ -46,7 +50,7 @@ export default function CookieConsent() {
               setOpen(false);
             }}
           >
-            Accept
+            {isFR ? "Accepter" : "Accept"}
           </button>
           <button
             className="btn-ghost"
@@ -58,7 +62,7 @@ export default function CookieConsent() {
               setOpen(false);
             }}
           >
-            Dismiss
+            {isFR ? "Fermer" : "Dismiss"}
           </button>
         </div>
       </div>
