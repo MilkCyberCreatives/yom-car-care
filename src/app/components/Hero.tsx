@@ -1,14 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-} from "framer-motion";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import CategoryStrip from "./CategoryStrip";
@@ -21,10 +14,15 @@ const SLIDES = [
 
 const AUTOPLAY_MS = 5500;
 
+function prefersReducedMotion() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+}
+
 export default function Hero() {
   const { locale } = useI18n();
   const isFR = locale === "fr";
-  const reduceMotion = useReducedMotion();
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   const heroCopy = isFR
     ? {
@@ -47,18 +45,21 @@ export default function Hero() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const total = SLIDES.length;
 
-  const current = useMemo(() => {
-    const safe = total > 0 ? index % total : 0;
-    return SLIDES[safe];
-  }, [index, total]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-  const nextSlide = useMemo(() => {
-    if (total <= 1) return null;
-    return SLIDES[(index + 1) % total] || null;
-  }, [index, total]);
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setReduceMotion(media.matches);
+    apply();
 
-  const { scrollY } = useScroll();
-  const bgY = useTransform(scrollY, [0, 700], reduceMotion ? [0, 0] : [0, 24]);
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", apply);
+      return () => media.removeEventListener("change", apply);
+    }
+
+    media.addListener?.(apply);
+    return () => media.removeListener?.(apply);
+  }, []);
 
   useEffect(() => {
     if (paused || total <= 1) return;
@@ -89,69 +90,47 @@ export default function Hero() {
 
   return (
     <section
-      className="relative min-h-[calc(100svh-var(--site-header-h,0px)-var(--site-breadcrumb-h,0px))] w-full overflow-hidden bg-black"
+      className="relative min-h-[calc(100svh-var(--site-header-h,116px)-var(--site-breadcrumb-h,0px))] w-full overflow-hidden bg-black"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setPaused(false)}
       aria-label="Hero slideshow"
     >
-      {nextSlide ? (
-        <div className="sr-only" aria-hidden="true">
-          <Image
-            src={nextSlide.src}
-            alt=""
-            width={10}
-            height={10}
-            priority={false}
-            fetchPriority="low"
-          />
-        </div>
-      ) : null}
-
       <div className="absolute inset-0">
-        <motion.div className="absolute inset-0" style={{ y: bgY }}>
-          {reduceMotion ? (
-            <Image
-              src={current.src}
-              alt={current.alt}
-              fill
-              priority
-              className="object-cover"
-              sizes="100vw"
-              quality={82}
-            />
-          ) : (
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={current.src}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-                className="absolute inset-0 overflow-hidden"
-              >
-                <motion.div
-                  className="absolute inset-0"
-                  initial={{ scale: 1.01 }}
-                  animate={{ scale: 1.035 }}
-                  transition={{ duration: AUTOPLAY_MS / 1000 + 0.9, ease: "easeOut" }}
-                >
-                  <Image
-                    src={current.src}
-                    alt={current.alt}
-                    fill
-                    priority={index === 0}
-                    fetchPriority={index === 0 ? "high" : "auto"}
-                    className="object-cover"
-                    sizes="100vw"
-                    quality={82}
-                  />
-                </motion.div>
-              </motion.div>
-            </AnimatePresence>
-          )}
-        </motion.div>
+        {SLIDES.map((slide, i) => {
+          const active = i === index;
+          return (
+            <div
+              key={slide.src}
+              className={`absolute inset-0 overflow-hidden transition-opacity duration-700 ${
+                active ? "opacity-100" : "opacity-0"
+              }`}
+              aria-hidden={active ? "false" : "true"}
+            >
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                fill
+                priority={i === 0}
+                fetchPriority={i === 0 ? "high" : "auto"}
+                loading={i === 0 || active ? "eager" : "lazy"}
+                className={`object-cover transition-transform ease-out ${
+                  active && !reduceMotion ? "scale-[1.03]" : "scale-[1.01]"
+                }`}
+                style={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        transitionDuration: `${AUTOPLAY_MS + 900}ms`,
+                      }
+                }
+                sizes="100vw"
+                quality={82}
+              />
+            </div>
+          );
+        })}
 
         <div className="absolute inset-0 bg-black/38" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(100%_60%_at_50%_40%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.45)_72%,rgba(0,0,0,0.75)_100%)]" />
@@ -187,13 +166,9 @@ export default function Hero() {
       >
         <span className="inline-flex items-center gap-2 text-sm">
           <span className="hidden sm:inline">{heroCopy.scroll}</span>
-          <motion.span
-            animate={reduceMotion ? undefined : { y: [0, 5, 0] }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-            className="inline-flex"
-          >
+          <span className={`inline-flex ${reduceMotion ? "" : "animate-bounce"}`}>
             <ChevronDown className="h-4 w-4" />
-          </motion.span>
+          </span>
         </span>
       </button>
 
@@ -217,7 +192,7 @@ export default function Hero() {
             <ChevronRight className="h-5 w-5 transition-transform group-hover:scale-110" />
           </button>
 
-          <div className="absolute inset-x-0 z-20 bottom-[26vh] flex items-center justify-center gap-2 md:bottom-[28vh] lg:bottom-[30vh]">
+          <div className="absolute inset-x-0 z-20 bottom-36 flex items-center justify-center gap-2 sm:bottom-40 md:bottom-44 lg:bottom-48">
             {SLIDES.map((_, i) => {
               const active = i === index;
               return (
@@ -237,7 +212,7 @@ export default function Hero() {
         </>
       )}
 
-      <div className="absolute inset-x-0 z-20 bottom-[12vh] sm:bottom-[14vh] md:bottom-[18vh] lg:bottom-[20vh]">
+      <div className="absolute inset-x-0 z-20 bottom-14 sm:bottom-16 md:bottom-20 lg:bottom-24">
         <div className="container-px">
           <div className="pointer-events-auto">
             <CategoryStrip />

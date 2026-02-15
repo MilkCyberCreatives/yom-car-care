@@ -1,7 +1,7 @@
 // src/app/components/HeaderShell.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import TopBar from "./TopBar";
 import MainHeader from "./MainHeader";
 
@@ -69,7 +69,7 @@ export default function HeaderShell() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const shell = shellRef.current;
     if (!shell) return;

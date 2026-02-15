@@ -4,7 +4,7 @@ import Link from "@/app/components/LocaleLink";
 import { useI18n } from "@/hooks/useI18n";
 import { usePathname } from "next/navigation";
 import type { Route } from "next";
-import { Fragment, useEffect, useMemo, useRef } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 function prettySlug(value: string) {
   return decodeURIComponent(value)
@@ -80,7 +80,7 @@ export default function BreadcrumbBar() {
   const crumbs = useBreadcrumbs();
   const barRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
 
     // Home route: no breadcrumb bar and no reserved height.

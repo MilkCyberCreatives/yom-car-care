@@ -1,11 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GA_ID, pageview, setConsent } from "@/lib/gtag";
+import {
+  CONSENT_CHANGE_EVENT,
+  CONSENT_STORAGE_KEY,
+  GA_ID,
+  pageview,
+  setConsent,
+} from "@/lib/gtag";
 import Link from "@/app/components/LocaleLink";
 import { useI18n } from "@/hooks/useI18n";
 
-const KEY = "yom-cookie-consent:v1";
+function notifyConsent(status: "accepted" | "dismissed") {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(CONSENT_CHANGE_EVENT, {
+      detail: { status },
+    })
+  );
+}
 
 export default function CookieConsent() {
   const { locale } = useI18n();
@@ -14,16 +27,18 @@ export default function CookieConsent() {
 
   useEffect(() => {
     try {
-      const v = localStorage.getItem(KEY);
+      const v = localStorage.getItem(CONSENT_STORAGE_KEY);
       if (v === "accepted") {
         if (GA_ID) {
           setConsent(true);
           pageview(window.location.pathname + window.location.search);
         }
+        notifyConsent("accepted");
         return;
       }
       if (v === "dismissed") {
         if (GA_ID) setConsent(false);
+        notifyConsent("dismissed");
         return;
       }
       setOpen(true);
@@ -55,12 +70,13 @@ export default function CookieConsent() {
             className="btn-primary"
             onClick={() => {
               try {
-                localStorage.setItem(KEY, "accepted");
+                localStorage.setItem(CONSENT_STORAGE_KEY, "accepted");
               } catch {}
               if (GA_ID) {
                 setConsent(true);
                 pageview(window.location.pathname + window.location.search);
               }
+              notifyConsent("accepted");
               setOpen(false);
             }}
           >
@@ -70,9 +86,10 @@ export default function CookieConsent() {
             className="btn-ghost"
             onClick={() => {
               try {
-                localStorage.setItem(KEY, "dismissed");
+                localStorage.setItem(CONSENT_STORAGE_KEY, "dismissed");
               } catch {}
               if (GA_ID) setConsent(false);
+              notifyConsent("dismissed");
               setOpen(false);
             }}
           >

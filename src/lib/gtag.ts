@@ -9,6 +9,8 @@ declare global {
 }
 
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
+export const CONSENT_STORAGE_KEY = "yom-cookie-consent:v1";
+export const CONSENT_CHANGE_EVENT = "yom-consent-change";
 
 /** Safe wrapper around gtag that won't throw during SSR or when GA is missing */
 export function gtag(...args: any[]) {
