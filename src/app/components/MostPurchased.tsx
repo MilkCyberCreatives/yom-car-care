@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/app/components/LocaleLink";
+import Image from "next/image";
 import useLocaleLink from "@/hooks/useLocaleLink";
 import { mostPurchasedHome, type MPItem as MPItemIn } from "@/data/mostPurchased";
 import AddToCartButton from "@/app/components/AddToCartButton";
@@ -199,30 +200,33 @@ export default function MostPurchased({
                   ].join(" ")}
                   style={{ transitionDelay: inView ? `${delayMs}ms` : "0ms" }}
                 >
-                  <div className="relative rounded-t-2xl overflow-hidden bg-black/15">
+                  <div className="relative rounded-t-2xl overflow-hidden bg-white">
                     {p.badge ? (
                       <div className="absolute top-2 right-2 z-10">
-                        <span className="text-xs rounded-md bg-white/10 px-2 py-1 backdrop-blur">
+                        <span className="rounded-md bg-black px-2 py-1 text-xs text-white shadow-sm">
                           {p.badge}
                         </span>
                       </div>
                     ) : null}
 
-                    <Link href={href} className="block w-full h-64 grid place-items-center">
+                    <Link href={href} className="relative block w-full h-64">
                       {p.img ? (
-                        <img
+                        <Image
                           src={p.img}
                           alt={p.name}
+                          fill
                           className={[
-                            "max-h-full max-w-full object-contain",
+                            "object-contain",
+                            "p-5",
                             "transition-transform duration-300",
                             "group-hover:scale-[1.03]",
                           ].join(" ")}
+                          sizes="(min-width:1280px) 25vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
                           loading="lazy"
-                          decoding="async"
+                          quality={80}
                         />
                       ) : (
-                        <div className="h-full w-full grid place-items-center text-white/40">
+                        <div className="h-full w-full grid place-items-center text-zinc-500">
                           {copy.noImage}
                         </div>
                       )}
@@ -251,7 +255,7 @@ export default function MostPurchased({
                     </div>
 
                     <div className="mt-2 flex items-center justify-between text-sm">
-                      <span className="rounded-md bg-white/10 px-2 py-1 capitalize">
+                      <span className="rounded-md bg-black px-2 py-1 capitalize text-white">
                         {prettyCat(p.category, locale)}
                       </span>
                       <span className="font-medium">{formatPrice(p.price, p.currency)}</span>

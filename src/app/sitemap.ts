@@ -1,118 +1,79 @@
-import type { MetadataRoute } from 'next'
-import { products } from '@/data/products'
+import type { MetadataRoute } from "next";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://yomcarcare.com'
-const NOW = new Date().toISOString()
+import { getAllProducts, catSlug } from "@/lib/products";
+import { absoluteUrl } from "@/lib/seo";
 
-// Core routes we want indexed
+const NOW = new Date();
+const LOCALES: Array<"en" | "fr"> = ["en", "fr"];
+
 const STATIC_ROUTES = [
-  '/',
-  '/about',
-  '/products',
-  '/contact',
-  '/faq',
-  '/legal-area',
-  '/privacy-policy',
-  '/cookie-policy',
-  '/terms',
-  '/compare',
-  '/enquiry',
-]
+  "/",
+  "/about",
+  "/products",
+  "/contact",
+  "/faq",
+  "/legal-area",
+  "/privacy-policy",
+  "/cookie-policy",
+  "/terms",
+  "/compare",
+  "/enquiry",
+] as const;
 
-// French mirrors (we use re-export pages)
-const STATIC_ROUTES_FR = STATIC_ROUTES.map((p) => `/fr${p === '/' ? '' : p}`)
+function localizedPath(locale: "en" | "fr", path: string) {
+  if (path === "/") return `/${locale}`;
+  return `/${locale}${path}`;
+}
+
+function alternatesFor(path: string) {
+  return {
+    languages: {
+      en: absoluteUrl(localizedPath("en", path)),
+      fr: absoluteUrl(localizedPath("fr", path)),
+      "x-default": absoluteUrl(localizedPath("en", path)),
+    } as Record<string, string>,
+  };
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Unique categories from data
-  const categories = Array.from(new Set(products.map((p) => p.category)))
+  const products = getAllProducts();
+  const categories = Array.from(new Set(products.map((product) => catSlug(product.category))));
 
-  // Category URLs
-  const catUrls = categories.flatMap((cat) => ([
-    {
-      url: `${SITE}/products/${cat}`,
+  const staticEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
+    STATIC_ROUTES.map((path) => ({
+      url: absoluteUrl(localizedPath(locale, path)),
       lastModified: NOW,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-      alternates: {
-        languages: {
-          en: `${SITE}/products/${cat}`,
-          fr: `${SITE}/fr/products/${cat}`,
-        },
-      },
-    },
-    {
-      url: `${SITE}/fr/products/${cat}`,
-      lastModified: NOW,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-      alternates: {
-        languages: {
-          en: `${SITE}/products/${cat}`,
-          fr: `${SITE}/fr/products/${cat}`,
-        },
-      },
-    },
-  ]))
+      changeFrequency: path === "/" ? "daily" : "weekly",
+      priority: path === "/" ? 1 : 0.7,
+      alternates: alternatesFor(path),
+    }))
+  );
 
-  // Product URLs
-  const productUrls = products.flatMap((p) => ([
-    {
-      url: `${SITE}/products/${p.category}/${p.slug}`,
-      lastModified: NOW,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-      alternates: {
-        languages: {
-          en: `${SITE}/products/${p.category}/${p.slug}`,
-          fr: `${SITE}/fr/products/${p.category}/${p.slug}`,
-        },
-      },
-    },
-    {
-      url: `${SITE}/fr/products/${p.category}/${p.slug}`,
-      lastModified: NOW,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-      alternates: {
-        languages: {
-          en: `${SITE}/products/${p.category}/${p.slug}`,
-          fr: `${SITE}/fr/products/${p.category}/${p.slug}`,
-        },
-      },
-    },
-  ]))
+  const categoryEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
+    categories.map((category) => {
+      const path = `/products/${category}`;
+      return {
+        url: absoluteUrl(localizedPath(locale, path)),
+        lastModified: NOW,
+        changeFrequency: "weekly",
+        priority: 0.75,
+        alternates: alternatesFor(path),
+      };
+    })
+  );
 
-  // Static pages (EN + FR) with alternates
-  const staticUrls = [
-    ...STATIC_ROUTES.map((path) => ({
-      url: `${SITE}${path}`,
-      lastModified: NOW,
-      changeFrequency: 'monthly' as const,
-      priority: path === '/' ? 1 : 0.6,
-      alternates: {
-        languages: {
-          en: `${SITE}${path}`,
-          fr: `${SITE}/fr${path === '/' ? '' : path}`,
-        },
-      },
-    })),
-    ...STATIC_ROUTES_FR.map((path) => ({
-      url: `${SITE}${path}`,
-      lastModified: NOW,
-      changeFrequency: 'monthly' as const,
-      priority: path === '/fr' ? 1 : 0.6,
-      alternates: {
-        languages: {
-          en: `${SITE}${path.replace(/^\/fr/, '') || '/'}`,
-          fr: `${SITE}${path}`,
-        },
-      },
-    })),
-  ]
+  const productEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
+    products.map((product) => {
+      const path = `/products/${catSlug(product.category)}/${product.slug}`;
+      return {
+        url: absoluteUrl(localizedPath(locale, path)),
+        lastModified: NOW,
+        changeFrequency: "weekly",
+        priority: 0.8,
+        alternates: alternatesFor(path),
+      };
+    })
+  );
 
-  return [
-    ...staticUrls,
-    ...catUrls,
-    ...productUrls,
-  ]
+  return [...staticEntries, ...categoryEntries, ...productEntries];
 }

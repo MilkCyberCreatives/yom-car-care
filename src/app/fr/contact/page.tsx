@@ -1,9 +1,15 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
+
 import ContactFormClient from "../../contact/ContactFormClient";
+import { localeAlternates } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contactez YOM Car Care a Lubumbashi.",
+  title: "Contact YOM Car Care",
+  description: "Contactez YOM Car Care a Lubumbashi par telephone, WhatsApp ou formulaire.",
+  alternates: {
+    canonical: "/fr/contact",
+    languages: localeAlternates("/contact"),
+  },
 };
 
 const PHONE_DISPLAY = "+243 84 899 4045";
@@ -58,12 +64,12 @@ export default function ContactPageFR() {
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white">
-              <h3 className="text-lg font-semibold">Heures d'ouverture</h3>
+              <h3 className="text-lg font-semibold">Heures d ouverture</h3>
               <ul className="mt-3 space-y-2">
-                {HOURS.map((h) => (
-                  <li key={h.day} className="flex items-center justify-between text-white/80">
-                    <span>{h.day}</span>
-                    <span className="tabular-nums">{h.time}</span>
+                {HOURS.map((hour) => (
+                  <li key={hour.day} className="flex items-center justify-between text-white/80">
+                    <span>{hour.day}</span>
+                    <span className="tabular-nums">{hour.time}</span>
                   </li>
                 ))}
               </ul>

@@ -104,13 +104,13 @@ export default function Footer() {
           <div className="grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-3">
-                <Image src="/logo.svg" alt="YOM Car Care" width={140} height={40} className="h-10 w-auto" />
+                <Image src="/logo.svg" alt="YOM Car Care" width={220} height={64} className="h-14 w-auto md:h-16" />
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="mt-6 flex flex-col items-start gap-2">
                 <a
                   href="tel:+243848994045"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/50 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900/70 focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-white/90 transition hover:text-white"
                   aria-label="Call +243 84 899 4045"
                 >
                   <PhoneIcon className="h-4 w-4" />
@@ -119,7 +119,7 @@ export default function Footer() {
 
                 <a
                   href="mailto:info@yomcarcare.com"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/50 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900/70 focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-white/90 transition hover:text-white"
                   aria-label="Email info@yomcarcare.com"
                 >
                   <MailIcon className="h-4 w-4" />

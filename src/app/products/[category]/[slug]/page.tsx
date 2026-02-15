@@ -3,24 +3,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import AddToCartButton from "@/app/components/AddToCartButton";
+import JsonLd from "@/app/components/JsonLd";
 import {
-  getAllProducts,
-  getBySlug,
-  getByCategorySlug,
-  firstImage,
   catSlug,
+  firstImage,
+  getAllProducts,
+  getByCategorySlug,
+  getBySlug,
 } from "@/lib/products";
 import { formatProductPrice } from "@/lib/money";
-import AddToCartButton from "@/app/components/AddToCartButton";
+import { localeAlternates, productJsonLd } from "@/lib/seo";
 
 type Params = { category: string; slug: string };
 
-/* ---------- SSG ---------- */
 export async function generateStaticParams() {
   const all = getAllProducts();
-  return all.map((p) => ({
-    category: catSlug(p.category),
-    slug: p.slug,
+  return all.map((product) => ({
+    category: catSlug(product.category),
+    slug: product.slug,
   }));
 }
 
@@ -31,54 +32,56 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const product = getBySlug(params.category, params.slug);
 
-  const title = product
-    ? `${product.name} | YOM Car Care`
-    : "Product | YOM Car Care";
-  const desc = product
-    ? `Explore ${product.name} — premium ${product.category.toLowerCase()} care from YOM Car Care.`
-    : "Explore premium car care products from YOM Car Care.";
-  const ogImg = product ? firstImage(product) : "/products/placeholder.jpg";
+  const title = product ? `${product.name} | YOM Car Care` : "Product | YOM Car Care";
+  const description = product
+    ? `Buy ${product.name} in Lubumbashi with cash-on-delivery from YOM Car Care.`
+    : "Explore premium car care products from YOM Car Care in Lubumbashi, DRC.";
+  const image = product ? firstImage(product) : "/products/placeholder.jpg";
+  const path = `/products/${params.category}/${params.slug}`;
 
   return {
     title,
-    description: desc,
+    description,
     alternates: {
-      canonical: `/products/${params.category}/${params.slug}`,
+      canonical: `/en${path}`,
+      languages: localeAlternates(path),
     },
     openGraph: {
       title,
-      description: desc,
-      images: [{ url: ogImg }],
+      description,
+      url: `/en${path}`,
+      type: "website",
+      images: [{ url: image }],
     },
   };
 }
 
-/* ---------- Page ---------- */
 export default function ProductPage({ params }: { params: Params }) {
   const product = getBySlug(params.category, params.slug);
   if (!product) return notFound();
 
-  const img = firstImage(product);
+  const image = firstImage(product);
   const price = formatProductPrice(product);
   const categorySlug = catSlug(product.category);
+  const path = `/en/products/${categorySlug}/${product.slug}`;
 
-  const sameCat = getByCategorySlug(categorySlug).filter(
-    (p) => p.slug !== product.slug
+  const sameCategory = getByCategorySlug(categorySlug).filter(
+    (entry) => entry.slug !== product.slug
   );
-  const others = getAllProducts().filter(
-    (p) => p.slug !== product.slug && catSlug(p.category) !== categorySlug
+  const crossCategory = getAllProducts().filter(
+    (entry) => entry.slug !== product.slug && catSlug(entry.category) !== categorySlug
   );
-  const suggestions = [...sameCat, ...others].slice(0, 8);
+  const suggestions = [...sameCategory, ...crossCategory].slice(0, 8);
 
   return (
     <main className="container-px py-8 md:py-10">
-      {/* Top section */}
+      <JsonLd id="product-jsonld-en" data={productJsonLd({ product, locale: "en", path })} />
+
       <section className="grid gap-6 md:grid-cols-2">
-        {/* Image */}
         <div className="rounded-3xl overflow-hidden border border-white/10 bg-white">
           <div className="relative aspect-[4/3]">
             <Image
-              src={img}
+              src={image}
               alt={product.name}
               fill
               className="object-contain p-6"
@@ -88,7 +91,6 @@ export default function ProductPage({ params }: { params: Params }) {
           </div>
         </div>
 
-        {/* Summary */}
         <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 md:p-8 text-white">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center rounded-lg bg-white/10 px-2.5 py-1 text-xs text-white/90 capitalize">
@@ -96,9 +98,7 @@ export default function ProductPage({ params }: { params: Params }) {
             </span>
           </div>
 
-          <h1 className="mt-3 text-2xl md:text-3xl font-bold leading-tight">
-            {product.name}
-          </h1>
+          <h1 className="mt-3 text-2xl md:text-3xl font-bold leading-tight">{product.name}</h1>
 
           <div className="mt-3">
             {price ? (
@@ -111,7 +111,6 @@ export default function ProductPage({ params }: { params: Params }) {
           <p className="mt-4 text-white/75">
             Professional-grade car care for{" "}
             <span className="lowercase">{categorySlug.replace(/-/g, " ")}</span> use.
-            Replace this paragraph with the official product description when available.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -121,13 +120,12 @@ export default function ProductPage({ params }: { params: Params }) {
                 slug: product.slug,
                 categorySlug,
                 name: product.name,
-                // parse back number from formatted price isn't safe; we have raw product.price
                 price: typeof product.price === "number" ? product.price : undefined,
                 currency: product.currency,
-                img,
+                img: image,
               }}
             />
-            <Link href="/contact" className="btn-ghost">
+            <Link href="/en/contact" className="btn-ghost">
               Ask a question
             </Link>
           </div>
@@ -135,7 +133,7 @@ export default function ProductPage({ params }: { params: Params }) {
           <div className="mt-8 grid gap-3 text-sm text-white/80">
             <div className="flex gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mt-1.5" />
-              <p>Curated by YOM Car Care — quality and value.</p>
+              <p>Curated by YOM Car Care for quality and value.</p>
             </div>
             <div className="flex gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mt-1.5" />
@@ -143,27 +141,23 @@ export default function ProductPage({ params }: { params: Params }) {
             </div>
             <div className="flex gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mt-1.5" />
-              <p>Available for pickup or local delivery.</p>
+              <p>Available for pickup or local delivery in Lubumbashi.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Details */}
       <section className="mt-8 grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2 rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white">
           <h2 className="text-xl font-semibold">Product details</h2>
           <div className="mt-3 space-y-4 text-white/80">
             <p>
-              <strong>Usage:</strong> Apply as directed on the packaging. Test on a small
-              area first. Avoid direct sunlight where possible.
+              <strong>Usage:</strong> Apply as directed on the packaging. Test on a small area
+              first and avoid direct sunlight when possible.
             </p>
             <p>
-              <strong>Storage:</strong> Keep sealed in a cool, dry place. Keep out of reach
-              of children.
-            </p>
-            <p className="text-white/60 text-sm">
-              Note: Replace this copy with official details when available.
+              <strong>Storage:</strong> Keep sealed in a cool, dry place and out of reach of
+              children.
             </p>
           </div>
         </div>
@@ -181,13 +175,12 @@ export default function ProductPage({ params }: { params: Params }) {
             </li>
             <li className="flex justify-between">
               <span>Price</span>
-              <span>{price || "—"}</span>
+              <span>{price || "-"}</span>
             </li>
           </ul>
         </aside>
       </section>
 
-      {/* Suggestions */}
       {suggestions.length > 0 && (
         <section className="mt-12">
           <header className="mb-4">
@@ -196,21 +189,21 @@ export default function ProductPage({ params }: { params: Params }) {
           </header>
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {suggestions.map((p) => {
-              const sImg = firstImage(p);
-              const href = `/products/${catSlug(p.category)}/${p.slug}`;
-              const sPrice = formatProductPrice(p);
+            {suggestions.map((entry) => {
+              const suggestionImage = firstImage(entry);
+              const href = `/en/products/${catSlug(entry.category)}/${entry.slug}`;
+              const suggestionPrice = formatProductPrice(entry);
 
               return (
                 <li
-                  key={p.slug}
+                  key={entry.slug}
                   className="group rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 text-white"
                 >
                   <Link href={href} className="block">
                     <div className="relative bg-white aspect-[4/3]">
                       <Image
-                        src={sImg}
-                        alt={p.name}
+                        src={suggestionImage}
+                        alt={entry.name}
                         fill
                         className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.03]"
                         sizes="(min-width:1280px) 25vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
@@ -221,35 +214,30 @@ export default function ProductPage({ params }: { params: Params }) {
                   <div className="px-5 py-4 bg-zinc-900 border-t border-white/10">
                     <div className="flex items-start gap-3">
                       <Link href={href} className="flex-1">
-                        <h3 className="font-semibold leading-snug line-clamp-2">
-                          {p.name}
-                        </h3>
+                        <h3 className="font-semibold leading-snug line-clamp-2">{entry.name}</h3>
                       </Link>
 
                       <AddToCartButton
                         variant="icon"
                         product={{
-                          slug: p.slug,
-                          categorySlug: catSlug(p.category),
-                          name: p.name,
-                          price:
-                            typeof p.price === "number" ? p.price : undefined,
-                          currency: p.currency,
-                          img: sImg,
+                          slug: entry.slug,
+                          categorySlug: catSlug(entry.category),
+                          name: entry.name,
+                          price: typeof entry.price === "number" ? entry.price : undefined,
+                          currency: entry.currency,
+                          img: suggestionImage,
                         }}
                       />
                     </div>
 
                     <div className="mt-3 flex items-center justify-between">
                       <span className="inline-flex items-center rounded-lg bg-white/10 px-2.5 py-1 text-xs text-white/90">
-                        {p.category}
+                        {entry.category}
                       </span>
-                      {sPrice ? (
-                        <span className="text-sm font-semibold text-white/80">
-                          {sPrice}
-                        </span>
+                      {suggestionPrice ? (
+                        <span className="text-sm font-semibold text-white/80">{suggestionPrice}</span>
                       ) : (
-                        <span className="text-sm text-white/50">—</span>
+                        <span className="text-sm text-white/50">-</span>
                       )}
                     </div>
                   </div>

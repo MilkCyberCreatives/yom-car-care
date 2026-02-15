@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata, ResolvingMetadata } from "next";
 import type { Route } from "next";
+import { localeAlternates, toLocale } from "@/lib/seo";
 
 type PageProps = { params: { locale: string } };
 
@@ -166,17 +167,15 @@ export async function generateMetadata(
   { params }: PageProps,
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const copy = getCopy(params.locale);
+  const locale = toLocale(params.locale);
+  const copy = getCopy(locale);
 
   return {
     title: copy.metaTitle,
     description: copy.metaDescription,
     alternates: {
-      canonical: `/${params.locale}/about`,
-      languages: {
-        en: "/en/about",
-        fr: "/fr/about",
-      },
+      canonical: `/${locale}/about`,
+      languages: localeAlternates("/about"),
     },
   };
 }

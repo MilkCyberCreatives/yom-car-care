@@ -1,13 +1,12 @@
-/** @type {import('next').NextConfig} */
+/** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: { typedRoutes: false },
+  poweredByHeader: false,
   images: {
-    remotePatterns: [
-      // add remote hosts here if you switch back to next/image
-      // { protocol: 'https', hostname: 'images.unsplash.com' }
-    ]
-  }
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [],
+  },
 };
 
 export default nextConfig;

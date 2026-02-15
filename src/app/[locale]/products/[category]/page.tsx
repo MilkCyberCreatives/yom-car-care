@@ -16,6 +16,7 @@ import {
 } from "@/lib/products";
 import { formatProductPrice } from "@/lib/money";
 import AddToCartButton from "@/app/components/AddToCartButton";
+import { localeAlternates } from "@/lib/seo";
 
 type Params = { locale: string; category: string };
 
@@ -55,9 +56,10 @@ export async function generateMetadata({
   const label = toLabel(params.category);
   return {
     title: `${label} | YOM Car Care`,
-    description: `Browse ${label} products.`,
+    description: `Browse ${label} car care products in Lubumbashi, DRC.`,
     alternates: {
       canonical: `/${params.locale}/products/${params.category}`,
+      languages: localeAlternates(`/products/${params.category}`),
     },
   };
 }

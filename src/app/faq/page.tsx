@@ -1,1 +1,18 @@
-export default function FAQ(){return(<main className="container-px py-10"><h1 className="text-3xl font-semibold">FAQ</h1><p className="mt-2 text-white/70">Coming soon.</p></main>)}
+import type { Metadata } from "next";
+
+import FaqPageContent from "@/app/faq/FaqPageContent";
+import { localeAlternates } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "YOM Car Care FAQ - Lubumbashi",
+  description:
+    "Frequently asked questions about ordering, delivery, and cash-on-delivery in Lubumbashi.",
+  alternates: {
+    canonical: "/en/faq",
+    languages: localeAlternates("/faq"),
+  },
+};
+
+export default function FAQPage() {
+  return <FaqPageContent locale="en" canonicalPath="/en/faq" />;
+}

@@ -1,10 +1,16 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
+
 import ContactFormClient from "./ContactFormClient";
+import { localeAlternates } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Contact Us",
+  title: "Contact YOM Car Care",
   description:
-    "Get in touch with YOM Car Care. Call, WhatsApp, or send us a message - fast local support in Lubumbashi.",
+    "Get in touch with YOM Car Care. Call, WhatsApp, or send us a message for fast support in Lubumbashi.",
+  alternates: {
+    canonical: "/en/contact",
+    languages: localeAlternates("/contact"),
+  },
 };
 
 const PHONE_DISPLAY = "+243 84 899 4045";
@@ -24,10 +30,8 @@ const HOURS: { day: string; time: string }[] = [
 export default function ContactPage() {
   return (
     <main className="flex flex-col">
-      {/* Content */}
       <section className="container-px py-10 md:py-14">
         <div className="grid gap-6 lg:grid-cols-5">
-          {/* Left: Contact details */}
           <div className="space-y-6 lg:col-span-2">
             <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white">
               <h2 className="text-xl font-semibold">Contact Details</h2>
@@ -63,22 +67,21 @@ export default function ContactPage() {
             <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white">
               <h3 className="text-lg font-semibold">Business Hours</h3>
               <ul className="mt-3 space-y-2">
-                {HOURS.map((h) => (
-                  <li key={h.day} className="flex items-center justify-between text-white/80">
-                    <span>{h.day}</span>
-                    <span className="tabular-nums">{h.time}</span>
+                {HOURS.map((hour) => (
+                  <li key={hour.day} className="flex items-center justify-between text-white/80">
+                    <span>{hour.day}</span>
+                    <span className="tabular-nums">{hour.time}</span>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
 
-          {/* Right: Client-side form */}
           <div className="lg:col-span-3">
             <div className="rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white md:p-8">
               <h2 className="text-xl font-semibold md:text-2xl">Send us a message</h2>
               <p className="mt-1 text-sm text-white/70">
-                Tell us what you need help with - exterior, interior, detailing or accessories.
+                Tell us what you need help with: exterior, interior, detailing, or accessories.
               </p>
               <div className="mt-6">
                 <ContactFormClient />
@@ -88,12 +91,11 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="container-px pb-12">
         <div className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-zinc-900 p-6 text-white md:flex-row md:items-center md:justify-between md:p-8">
           <div>
             <h3 className="text-xl font-bold md:text-2xl">Prefer a quick chat?</h3>
-            <p className="mt-1 text-white/70">Message us on WhatsApp and we will respond fast.</p>
+            <p className="mt-1 text-white/70">Message us on WhatsApp and we will reply quickly.</p>
           </div>
           <div className="flex gap-3">
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">

@@ -81,6 +81,7 @@ export default function CartPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
+  const [hp, setHp] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -161,6 +162,7 @@ export default function CartPage() {
           phone,
           email,
           notes,
+          hp,
           cart,
         }),
       });
@@ -175,6 +177,7 @@ export default function CartPage() {
       setPhone("");
       setEmail("");
       setNotes("");
+      saveCart([]);
     } catch (err: any) {
       setStatus("error");
       setErrorMsg(err?.message || "Something went wrong.");
@@ -277,6 +280,15 @@ export default function CartPage() {
             <p className="mb-4 text-sm text-white/60">{copy.checkoutDesc}</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="hp"
+                value={hp}
+                onChange={(e) => setHp(e.target.value)}
+                autoComplete="off"
+                tabIndex={-1}
+                className="hidden"
+              />
               <div>
                 <label className="mb-1 block text-sm text-white/70">{copy.nameLabel}</label>
                 <input

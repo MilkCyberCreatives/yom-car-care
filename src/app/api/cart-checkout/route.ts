@@ -1,25 +1,38 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-/* ---------- helpers ---------- */
+type CheckoutItem = {
+  slug: string;
+  categorySlug: string;
+  name: string;
+  qty: number;
+  price?: number;
+  currency?: string;
+  img?: string;
+};
 
-function sanitize(s: string) {
-  return s.replace(/[\r\n\t]/g, " ").trim();
+function sanitize(value: string) {
+  return value.replace(/[\r\n\t]/g, " ").trim();
 }
 
-function isEmail(s: string) {
-  if (!s) return true; // email is optional on checkout form
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+function isEmail(value: string) {
+  if (!value) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-// same logic you used in contact route
 async function getTransporter() {
   const { createTransport } = await import("nodemailer");
 
   const {
     SMTP_URL,
     EMAIL_SERVER_URL,
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_SECURE,
+    SMTP_USER,
+    SMTP_PASS,
     EMAIL_SERVER_HOST,
     EMAIL_SERVER_PORT,
     EMAIL_SERVER_USER,
@@ -30,28 +43,24 @@ async function getTransporter() {
     return createTransport(SMTP_URL || EMAIL_SERVER_URL);
   }
 
-  if (
-    EMAIL_SERVER_HOST &&
-    EMAIL_SERVER_PORT &&
-    EMAIL_SERVER_USER &&
-    EMAIL_SERVER_PASS
-  ) {
-    return createTransport({
-      host: EMAIL_SERVER_HOST,
-      port: Number(EMAIL_SERVER_PORT),
-      secure: Number(EMAIL_SERVER_PORT) === 465,
-      auth: {
-        user: EMAIL_SERVER_USER,
-        pass: EMAIL_SERVER_PASS,
-      },
-    });
+  const host = SMTP_HOST || EMAIL_SERVER_HOST || "mail.yomcarcare.com";
+  const port = Number(SMTP_PORT || EMAIL_SERVER_PORT || 465);
+  const user = SMTP_USER || EMAIL_SERVER_USER || "info@yomcarcare.com";
+  const pass = SMTP_PASS || EMAIL_SERVER_PASS;
+  const secure =
+    typeof SMTP_SECURE === "string"
+      ? SMTP_SECURE.toLowerCase() === "true"
+      : port === 465;
+
+  if (!pass || pass === "YOUR_MAILBOX_PASSWORD") {
+    throw new Error("Missing SMTP password. Set SMTP_PASS (or EMAIL_SERVER_PASS).");
   }
 
-  // fallback to system sendmail
   return createTransport({
-    sendmail: true,
-    newline: "unix",
-    path: "/usr/sbin/sendmail",
+    host,
+    port,
+    secure,
+    auth: { user, pass },
   });
 }
 
@@ -66,15 +75,7 @@ function renderHtmlOrder({
   phone: string;
   email: string;
   notes: string;
-  cart: Array<{
-    slug: string;
-    categorySlug: string;
-    name: string;
-    qty: number;
-    price?: number;
-    currency?: string;
-    img?: string;
-  }>;
+  cart: CheckoutItem[];
 }) {
   const rows = cart
     .map(
@@ -93,7 +94,7 @@ function renderHtmlOrder({
           ${
             typeof item.price === "number"
               ? `${item.currency || "USD"} ${item.price.toLocaleString()}`
-              : "—"
+              : "-"
           }
         </td>
       </tr>`
@@ -139,30 +140,67 @@ function renderHtmlOrder({
     </table>
 
     <p style="font-size:12px;color:#777;margin-top:16px;">
-      Sent automatically from yom-car-care.com cart checkout.
+      Sent automatically from yomcarcare.com cart checkout.
     </p>
   </div>`;
 }
 
-/* ---------- POST /api/cart-checkout ---------- */
-
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const rl = checkRateLimit({
+      key: `checkout:${ip}`,
+      limit: 6,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (!rl.ok) {
+      return NextResponse.json(
+        { ok: false, error: "Too many checkout attempts. Please wait and try again." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil(rl.retryAfterMs / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
+    const hp = sanitize(String(body.hp || ""));
+    if (hp) {
+      return NextResponse.json({ ok: true, message: "Thanks." });
+    }
 
     const name = sanitize(String(body.name || ""));
     const phone = sanitize(String(body.phone || ""));
     const email = sanitize(String(body.email || ""));
     const notes = sanitize(String(body.notes || ""));
-    const cart = Array.isArray(body.cart) ? body.cart : [];
+    const inputCart = Array.isArray(body.cart) ? body.cart : [];
+    if (inputCart.length > 100) {
+      return NextResponse.json(
+        { ok: false, error: "Cart is too large." },
+        { status: 400 }
+      );
+    }
 
-    // Basic validation
+    const cart: CheckoutItem[] = inputCart
+      .map((item: any) => ({
+        slug: sanitize(String(item.slug || "")),
+        categorySlug: sanitize(String(item.categorySlug || "")),
+        name: sanitize(String(item.name || "")),
+        qty: Number(item.qty || 0),
+        price: typeof item.price === "number" ? item.price : undefined,
+        currency: sanitize(String(item.currency || "USD")),
+        img: sanitize(String(item.img || "")),
+      }))
+      .filter(
+        (item: CheckoutItem) =>
+          item.slug && item.categorySlug && item.name && item.qty > 0
+      );
+
     if (!name || !phone || cart.length === 0) {
       return NextResponse.json(
-        {
-          ok: false,
-          error: "Missing required fields (name, phone, cart).",
-        },
+        { ok: false, error: "Missing required fields (name, phone, cart)." },
         { status: 400 }
       );
     }
@@ -174,15 +212,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // build email
     const html = renderHtmlOrder({ name, phone, email, notes, cart });
+    const transporter = await getTransporter();
 
     const TO = process.env.CONTACT_TO || "info@yomcarcare.com";
-    const FROM =
-      process.env.CONTACT_FROM ||
-      `YOM Car Care <no-reply@yomcarcare.com>`;
-
-    const transporter = await getTransporter();
+    const FROM = process.env.CONTACT_FROM || "YOM Car Care <no-reply@yomcarcare.com>";
 
     await transporter.sendMail({
       from: FROM,
@@ -191,18 +225,37 @@ export async function POST(req: Request) {
       subject: `[Cart Checkout] New order request from ${name}`,
       text: `Name: ${name}\nPhone: ${phone}\nEmail: ${email}\nNotes: ${notes}\nItems: ${cart
         .map(
-          (i: any) =>
-            `${i.qty} x ${i.name} (/products/${i.categorySlug}/${i.slug})`
+          (item) =>
+            `${item.qty} x ${item.name} (/products/${item.categorySlug}/${item.slug})`
         )
         .join("; ")}`,
       html,
     });
 
-    return NextResponse.json({ ok: true });
+    if (email) {
+      try {
+        await transporter.sendMail({
+          from: FROM,
+          to: email,
+          subject: "We received your order request - YOM Car Care",
+          text:
+            "Hello,\n\nWe received your order request and will contact you shortly.\n\n" +
+            "Bonjour,\n\nNous avons bien recu votre demande et nous vous contacterons rapidement.\n\n" +
+            "YOM Car Care",
+        });
+      } catch (ackErr) {
+        console.error("Checkout acknowledgement email failed:", ackErr);
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      message: "Order request sent successfully.",
+    });
   } catch (err: any) {
     console.error("cart-checkout error:", err);
     return NextResponse.json(
-      { ok: false, error: "Failed to send cart to admin." },
+      { ok: false, error: err?.message || "Failed to send cart to admin." },
       { status: 500 }
     );
   }

@@ -1,12 +1,13 @@
-// src/middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 const LOCALES = ["en", "fr"] as const;
-const DEFAULT_LOCALE = "en";
+type Locale = (typeof LOCALES)[number];
 
-// Skip files and Next internals
-function isPublicFile(pathname: string) {
+function isLocale(value: string | undefined): value is Locale {
+  return !!value && LOCALES.includes(value as Locale);
+}
+
+function isPublicPath(pathname: string): boolean {
   return (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -14,26 +15,47 @@ function isPublicFile(pathname: string) {
     pathname.startsWith("/robots.txt") ||
     pathname.startsWith("/sitemap") ||
     pathname.startsWith("/manifest") ||
-    pathname.match(/\.(.*)$/) // .png, .jpg, .css, .js, etc
+    pathname.match(/\.[^/]+$/) !== null
   );
 }
 
+function localeFromAcceptLanguage(value: string | null): Locale | undefined {
+  if (!value) return undefined;
+  const normalized = value.toLowerCase();
+  if (normalized.includes("fr")) return "fr";
+  if (normalized.includes("en")) return "en";
+  return undefined;
+}
+
+function detectLocale(req: NextRequest): Locale {
+  const cookieLocale = req.cookies.get("NEXT_LOCALE")?.value;
+  if (isLocale(cookieLocale)) return cookieLocale;
+
+  const country = req.headers.get("x-vercel-ip-country")?.toUpperCase();
+  if (country === "CD") return "fr";
+
+  return localeFromAcceptLanguage(req.headers.get("accept-language")) || "en";
+}
+
 export function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
-  // ignore assets / api / files
-  if (isPublicFile(pathname)) return NextResponse.next();
+  if (isPublicPath(pathname)) return NextResponse.next();
 
-  // pathname parts
-  const parts = pathname.split("/").filter(Boolean);
-  const first = parts[0];
+  const firstSegment = pathname.split("/").filter(Boolean)[0];
+  if (isLocale(firstSegment)) return NextResponse.next();
 
-  // already locale-prefixed
-  if (first && LOCALES.includes(first as any)) return NextResponse.next();
+  const locale = detectLocale(req);
+  const target = req.nextUrl.clone();
+  target.pathname = `/${locale}${pathname}`;
 
-  // redirect "/" -> "/en"
-  const target = new URL(`/${DEFAULT_LOCALE}${pathname}${search}`, req.url);
-  return NextResponse.redirect(target);
+  const response = NextResponse.redirect(target);
+  response.cookies.set("NEXT_LOCALE", locale, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+
+  return response;
 }
 
 export const config = {

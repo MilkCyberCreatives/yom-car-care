@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Make sure this runs in the Node runtime (not edge) for SMTP.
 export const runtime = "nodejs";
@@ -90,7 +91,31 @@ function renderHtml({
 // ---- Route handler ----
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const rl = checkRateLimit({
+      key: `contact:${ip}`,
+      limit: 8,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (!rl.ok) {
+      return NextResponse.json(
+        { ok: false, error: "Too many requests. Please wait and try again." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil(rl.retryAfterMs / 1000)),
+          },
+        }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
+    const hp = sanitize(String(body.hp ?? ""));
+    if (hp) {
+      // Honeypot field should stay empty for real users.
+      return NextResponse.json({ ok: true, message: "Thanks." });
+    }
+
     const name = sanitize(String(body.name ?? ""));
     const email = sanitize(String(body.email ?? ""));
     const phone = sanitize(String(body.phone ?? ""));
@@ -105,6 +130,12 @@ export async function POST(req: Request) {
     }
     if (!isEmail(email)) {
       return NextResponse.json({ ok: false, error: "Invalid email address." }, { status: 400 });
+    }
+    if (message.length > 5000 || subject.length > 200) {
+      return NextResponse.json(
+        { ok: false, error: "Message is too long." },
+        { status: 400 }
+      );
     }
 
     // Configure recipient + sender

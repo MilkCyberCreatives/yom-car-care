@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Script from "next/script";
+import { SITE_URL } from "@/lib/seo";
 
 /**
  * Emits schema.org BreadcrumbList based on current pathname.
@@ -12,7 +13,7 @@ export default function SeoBreadcrumbJsonLd() {
   if (pathname === "/" || pathname === "/fr") return null;
 
   const segs = pathname.split("/").filter(Boolean);
-  const base = "https://yomcarcare.com";
+  const base = SITE_URL;
 
   const itemListElement = [
     { "@type": "ListItem", position: 1, name: "Home", item: `${base}/` },

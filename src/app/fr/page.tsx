@@ -1,4 +1,11 @@
-import Home, { metadata } from "../[locale]/page";
+import type { Metadata } from "next";
 
-export default Home;
-export { metadata };
+import LocaleHomePage, { generateMetadata as generateLocaleMetadata } from "../[locale]/page";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return generateLocaleMetadata({ params: { locale: "fr" } });
+}
+
+export default function FRHomePage() {
+  return <LocaleHomePage params={{ locale: "fr" }} />;
+}

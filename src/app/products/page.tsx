@@ -10,11 +10,15 @@ import {
 } from "@/lib/products";
 import { formatProductPrice } from "@/lib/money";
 import AddToCartButton from "@/app/components/AddToCartButton";
+import { localeAlternates } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Products | YOM Car Care",
-  description: "Browse all YOM Car Care products.",
-  alternates: { canonical: "/products" },
+  title: "Car Care Products | YOM Car Care",
+  description: "Browse all YOM Car Care products in Lubumbashi, DRC.",
+  alternates: {
+    canonical: "/en/products",
+    languages: localeAlternates("/products"),
+  },
 };
 
 export default function ProductsPage() {

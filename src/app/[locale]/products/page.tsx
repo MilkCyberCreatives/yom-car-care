@@ -4,16 +4,23 @@ import Link from "next/link";
 import { getAllProducts, firstImage, catSlug } from "@/lib/products";
 import { formatProductPrice } from "@/lib/money";
 import AddToCartButton from "@/app/components/AddToCartButton";
+import { localeAlternates } from "@/lib/seo";
 
 type Params = { params: { locale: string } };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const isFR = params.locale === "fr";
   return {
-    title: isFR ? "Produits | YOM Car Care" : "Products | YOM Car Care",
+    title: isFR
+      ? "Produits d entretien auto | YOM Car Care"
+      : "Car Care Products | YOM Car Care",
     description: isFR
-      ? "Parcourez tous les produits YOM Car Care."
-      : "Browse all YOM Car Care products.",
+      ? "Parcourez tous les produits YOM Car Care a Lubumbashi, RDC."
+      : "Browse all YOM Car Care products in Lubumbashi, DRC.",
+    alternates: {
+      canonical: `/${params.locale}/products`,
+      languages: localeAlternates("/products"),
+    },
   };
 }
 

@@ -1,21 +1,12 @@
-/** @type {import('next').NextConfig} */
+/** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-
-  // Turn this OFF for now to prevent typed route compile errors on Vercel
-  experimental: {
-    typedRoutes: false,
-  },
-
-  // If you ever load remote images, add domains here:
+  experimental: { typedRoutes: false },
+  poweredByHeader: false,
   images: {
-    remotePatterns: [
-      // { protocol: 'https', hostname: 'images.example.com' },
-    ],
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [],
   },
-
-  // Keep the app directory enabled (default in Next 14)
-  // appDir: true,
 };
 
 module.exports = nextConfig;
