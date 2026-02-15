@@ -39,14 +39,18 @@ async function getTransporter() {
   const host = SMTP_HOST || EMAIL_SERVER_HOST || "mail.yomcarcare.com";
   const port = Number(SMTP_PORT || EMAIL_SERVER_PORT || 465);
   const user = SMTP_USER || EMAIL_SERVER_USER || "info@yomcarcare.com";
-  const pass = SMTP_PASS || EMAIL_SERVER_PASS;
+  const normalizedSmtpPass =
+    SMTP_PASS && SMTP_PASS !== "YOUR_MAILBOX_PASSWORD" ? SMTP_PASS : "";
+  const pass = normalizedSmtpPass || EMAIL_SERVER_PASS;
   const secure =
     typeof SMTP_SECURE === "string"
       ? SMTP_SECURE.toLowerCase() === "true"
       : port === 465;
 
-  if (!pass || pass === "YOUR_MAILBOX_PASSWORD") {
-    throw new Error("Missing SMTP password. Set SMTP_PASS (or EMAIL_SERVER_PASS) to your mailbox password.");
+  if (!pass) {
+    throw new Error(
+      "Missing SMTP password. Set SMTP_PASS (or EMAIL_SERVER_PASS) to your mailbox password."
+    );
   }
 
   return createTransport({
@@ -158,17 +162,24 @@ export async function POST(req: Request) {
       await transporter.sendMail({
         from: FROM,
         to: email,
-        subject: "We received your message - YOM Car Care",
+        subject: "Message received - YOM Car Care",
         text:
-          "Hello,\n\nWe have received your message and will get back to you shortly.\n\n" +
-          "Bonjour,\n\nNous avons bien recu votre message et nous vous repondrons rapidement.\n\n" +
+          "Hello,\n\n" +
+          "Thank you for contacting YOM Car Care. We have received your message.\n" +
+          "Our agent consultant will attend to your request as soon as possible.\n\n" +
+          "Bonjour,\n\n" +
+          "Merci d avoir contacte YOM Car Care. Nous avons bien recu votre message.\n" +
+          "Notre agent consultant traitera votre demande des que possible.\n\n" +
           "YOM Car Care",
         html: `
           <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.6;">
             <p>Hello,</p>
-            <p>We have received your message and will get back to you shortly.</p>
+            <p>Thank you for contacting YOM Car Care. We have received your message.</p>
+            <p>Our agent consultant will attend to your request as soon as possible.</p>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;" />
             <p>Bonjour,</p>
-            <p>Nous avons bien recu votre message et nous vous repondrons rapidement.</p>
+            <p>Merci d avoir contacte YOM Car Care. Nous avons bien recu votre message.</p>
+            <p>Notre agent consultant traitera votre demande des que possible.</p>
             <p>YOM Car Care</p>
           </div>
         `,
@@ -179,7 +190,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      message: "We received your email and will reply shortly. / Nous avons bien recu votre email et nous vous repondrons rapidement.",
+      message:
+        "Your message was received. Our agent consultant will attend to it as soon as possible. / Votre message a bien ete recu. Notre agent consultant s en occupera des que possible.",
     });
   } catch (err: any) {
     console.error("Contact API error:", err);

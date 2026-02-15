@@ -46,13 +46,15 @@ async function getTransporter() {
   const host = SMTP_HOST || EMAIL_SERVER_HOST || "mail.yomcarcare.com";
   const port = Number(SMTP_PORT || EMAIL_SERVER_PORT || 465);
   const user = SMTP_USER || EMAIL_SERVER_USER || "info@yomcarcare.com";
-  const pass = SMTP_PASS || EMAIL_SERVER_PASS;
+  const normalizedSmtpPass =
+    SMTP_PASS && SMTP_PASS !== "YOUR_MAILBOX_PASSWORD" ? SMTP_PASS : "";
+  const pass = normalizedSmtpPass || EMAIL_SERVER_PASS;
   const secure =
     typeof SMTP_SECURE === "string"
       ? SMTP_SECURE.toLowerCase() === "true"
       : port === 465;
 
-  if (!pass || pass === "YOUR_MAILBOX_PASSWORD") {
+  if (!pass) {
     throw new Error("Missing SMTP password. Set SMTP_PASS (or EMAIL_SERVER_PASS).");
   }
 
