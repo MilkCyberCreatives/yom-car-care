@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GA_ID, setConsent } from "@/lib/gtag";
+import { GA_ID, pageview, setConsent } from "@/lib/gtag";
 import Link from "@/app/components/LocaleLink";
 import { useI18n } from "@/hooks/useI18n";
 
@@ -15,9 +15,20 @@ export default function CookieConsent() {
   useEffect(() => {
     try {
       const v = localStorage.getItem(KEY);
-      if (!v) setOpen(true);
+      if (v === "accepted") {
+        if (GA_ID) {
+          setConsent(true);
+          pageview(window.location.pathname + window.location.search);
+        }
+        return;
+      }
+      if (v === "dismissed") {
+        if (GA_ID) setConsent(false);
+        return;
+      }
+      setOpen(true);
     } catch {
-      // ignore
+      setOpen(true);
     }
   }, []);
 
@@ -46,7 +57,10 @@ export default function CookieConsent() {
               try {
                 localStorage.setItem(KEY, "accepted");
               } catch {}
-              if (GA_ID) setConsent(true);
+              if (GA_ID) {
+                setConsent(true);
+                pageview(window.location.pathname + window.location.search);
+              }
               setOpen(false);
             }}
           >
