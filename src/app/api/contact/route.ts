@@ -64,6 +64,16 @@ async function getTransporter() {
   });
 }
 
+function getMailDefaults() {
+  const smtpUser =
+    process.env.SMTP_USER || process.env.EMAIL_SERVER_USER || "info@yomcarcare.com";
+
+  return {
+    to: process.env.CONTACT_TO || smtpUser,
+    from: process.env.CONTACT_FROM || `YOM Car Care <${smtpUser}>`,
+  };
+}
+
 function renderHtml({
   name,
   email,
@@ -143,8 +153,7 @@ export async function POST(req: Request) {
     }
 
     // Configure recipient + sender
-    const TO = process.env.CONTACT_TO || "info@yomcarcare.com";
-    const FROM = process.env.CONTACT_FROM || `YOM Car Care <info@yomcarcare.com>`;
+    const { to: TO, from: FROM } = getMailDefaults();
 
     const transporter = await getTransporter();
 

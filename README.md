@@ -25,6 +25,12 @@ npm run build
 
 Set these in `.env.local` for local development and in Vercel Project Settings for production.
 
+Quick start:
+
+```bash
+cp .env.example .env.local
+```
+
 Required for email and ordering:
 
 - `NEXT_PUBLIC_SITE_URL`
@@ -36,7 +42,7 @@ Required for email and ordering:
 - `SMTP_SECURE`
   - `true` for port `465`
 - `SMTP_USER`
-  - Example: `info@yomcarcare.com`
+  - Example: `no-reply@yomcarcare.com`
 - `SMTP_PASS`
   - Mailbox/app password
 - `CONTACT_TO`
