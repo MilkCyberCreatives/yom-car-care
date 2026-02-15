@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useI18n } from "@/hooks/useI18n";
+import { event } from "@/lib/gtag";
 
 type ContactFormClientProps = {
   className?: string;
@@ -52,6 +53,7 @@ export default function ContactFormClient({
     const form = e.currentTarget;
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
+    const subject = String(payload.subject || copy.subjectDefault);
 
     try {
       const res = await fetch("/api/contact", {
@@ -65,6 +67,17 @@ export default function ContactFormClient({
 
       setStatus("ok");
       setOkMsg(String(json.message || copy.ok));
+      event("contact_submit", {
+        method: "form",
+        form_name: "contact_form",
+        locale,
+        subject,
+      });
+      event("generate_lead", {
+        lead_type: "contact_form",
+        method: "form",
+        locale,
+      });
       form.reset();
     } catch (e: any) {
       setStatus("error");

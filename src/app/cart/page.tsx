@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Trash2 } from "lucide-react";
 import { formatMoney } from "@/lib/money";
 import { useI18n } from "@/hooks/useI18n";
+import { event } from "@/lib/gtag";
 
 type CartItem = {
   slug: string;
@@ -171,6 +172,26 @@ export default function CartPage() {
       if (!res.ok || !data.ok) {
         throw new Error(data.error || "Failed to send.");
       }
+      const itemCount = cart.length;
+      const quantityTotal = cart.reduce((sum, item) => sum + item.qty, 0);
+      event("order_submit", {
+        method: "form",
+        order_type: "quote_request",
+        currency,
+        value: subtotal,
+        item_count: itemCount,
+        quantity_total: quantityTotal,
+        locale,
+      });
+      event("generate_lead", {
+        lead_type: "order_request",
+        method: "form",
+        currency,
+        value: subtotal,
+        item_count: itemCount,
+        quantity_total: quantityTotal,
+        locale,
+      });
 
       setStatus("sent");
       setName("");
