@@ -46,8 +46,8 @@ export default function MainHeader() {
   const [catsOpen, setCatsOpen] = useState(false);
 
   // ✅ Scroll progress (premium)
-  const [progress, setProgress] = useState(0);
   const reducedRef = useRef(false);
+  const progressBarRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(0);
   const progressTickRef = useRef(false);
 
@@ -185,10 +185,12 @@ export default function MainHeader() {
       const max = Math.max(1, scrollHeight - clientHeight);
       const p = Math.min(1, Math.max(0, scrollTop / max));
 
-      // Update only if changed meaningfully to avoid extra renders
-      if (Math.abs(p - progressRef.current) > 0.01) {
+      // Update only if changed meaningfully and mutate style directly (no React re-render on scroll)
+      if (Math.abs(p - progressRef.current) > 0.005) {
         progressRef.current = p;
-        setProgress(p);
+        if (progressBarRef.current) {
+          progressBarRef.current.style.transform = `scaleX(${p})`;
+        }
       }
 
       progressTickRef.current = false;
@@ -215,13 +217,14 @@ export default function MainHeader() {
       {/* ✅ Thin scroll progress bar */}
       <div className="h-[3px] w-full bg-white/10">
         <div
+          ref={progressBarRef}
           className={cx(
             "h-full bg-white/85",
             reducedRef.current ? "" : "transition-[transform] duration-150 ease-out"
           )}
           style={{
             transformOrigin: "0% 50%",
-            transform: `scaleX(${progress})`,
+            transform: "scaleX(0)",
           }}
           aria-hidden="true"
         />

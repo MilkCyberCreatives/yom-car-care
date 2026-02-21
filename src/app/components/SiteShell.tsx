@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import HeaderShell from "@/app/components/HeaderShell";
 import Footer from "@/app/components/Footer";
-import ScrollToTop from "@/app/components/ScrollToTop";
 import BreadcrumbBar from "@/app/components/BreadcrumbBar";
 import PageMasthead from "@/app/components/PageMasthead";
 import PreFooterContact from "@/app/components/PreFooterContact";
@@ -31,7 +30,6 @@ export default function SiteShell({ locale, children }: SiteShellProps) {
       <PreFooterContact />
       <Footer />
       <CookieConsent />
-      <ScrollToTop />
     </I18nProvider>
   );
 }

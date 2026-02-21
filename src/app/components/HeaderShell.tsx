@@ -1,7 +1,7 @@
 // src/app/components/HeaderShell.tsx
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TopBar from "./TopBar";
 import MainHeader from "./MainHeader";
 
@@ -21,12 +21,12 @@ function prefersReducedMotion() {
 
 export default function HeaderShell() {
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const maxHeaderHeightRef = useRef(0);
   const lastYRef = useRef(0);
   const tickingRef = useRef(false);
 
   const [reduced, setReduced] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showTopBar, setShowTopBar] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -49,17 +49,6 @@ export default function HeaderShell() {
         const nextScrolled = y > 8;
         setScrolled((prev) => (prev === nextScrolled ? prev : nextScrolled));
 
-        // Hide/show TopBar (skip if reduced motion to keep it stable)
-        if (!rm) {
-          const THRESH = 10;
-
-          if (delta > THRESH && y > 40) {
-            setShowTopBar((prev) => (prev ? false : prev));
-          } else if (delta < -THRESH) {
-            setShowTopBar((prev) => (!prev ? true : prev));
-          }
-        }
-
         lastYRef.current = y;
         tickingRef.current = false;
       });
@@ -69,28 +58,26 @@ export default function HeaderShell() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const shell = shellRef.current;
     if (!shell) return;
 
     const applyHeightVar = () => {
       const h = shell.getBoundingClientRect().height;
-      document.documentElement.style.setProperty("--site-header-h", `${Math.max(0, Math.round(h))}px`);
+      if (h > maxHeaderHeightRef.current) {
+        maxHeaderHeightRef.current = h;
+      }
+      const stable = Math.max(0, Math.round(maxHeaderHeightRef.current));
+      document.documentElement.style.setProperty("--site-header-h", `${stable}px`);
     };
 
     applyHeightVar();
 
-    const ro =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(() => applyHeightVar())
-        : null;
-    ro?.observe(shell);
-
-    window.addEventListener("resize", applyHeightVar, { passive: true });
+    const onResize = () => requestAnimationFrame(applyHeightVar);
+    window.addEventListener("resize", onResize, { passive: true });
     return () => {
-      ro?.disconnect();
-      window.removeEventListener("resize", applyHeightVar);
+      window.removeEventListener("resize", onResize);
       document.documentElement.style.removeProperty("--site-header-h");
     };
   }, []);
@@ -111,7 +98,7 @@ export default function HeaderShell() {
         className={[
           "overflow-hidden",
           reduced ? "" : "transition-[max-height,opacity] duration-300",
-          showTopBar ? "max-h-24 opacity-100" : "max-h-0 opacity-0",
+          "max-h-24 opacity-100",
         ].join(" ")}
       >
         <TopBar />
