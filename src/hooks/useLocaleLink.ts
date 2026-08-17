@@ -13,6 +13,8 @@ export default function useLocaleLink() {
 
   return useMemo(() => {
     const l = (path: string) => {
+      if (/^https?:\/\//i.test(path)) return path;
+
       const p = path.startsWith("/") ? path : `/${path}`;
       const normalized = p.replace(/^\/(en|fr)(\/|$)/, "/");
       return locale === "fr"
