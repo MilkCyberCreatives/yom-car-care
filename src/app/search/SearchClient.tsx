@@ -34,7 +34,7 @@ export default function SearchClient() {
             <>
               {results.length}{" "}
               {isFR ? `resultat${results.length !== 1 ? "s" : ""}` : `result${results.length !== 1 ? "s" : ""}`}{" "}
-              {isFR ? "pour" : "for"} <span className="font-semibold">'{q}'</span>
+              {isFR ? "pour" : "for"} <span className="font-semibold">&apos;{q}&apos;</span>
             </>
           ) : (
             <>{isFR ? "Tapez une recherche ci-dessus." : "Type a search above."}</>

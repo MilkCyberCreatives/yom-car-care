@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
 import type { ProductData } from "@/data/products";
@@ -14,15 +15,14 @@ export default function ProductCard({ p }: { p: ProductData }) {
       href={href}
       className="group overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/40 hover:bg-zinc-900/60 transition"
     >
-      {/* Image */}
       <div className="relative w-full aspect-[4/3] overflow-hidden">
         {img ? (
-          // Use <img> to avoid next/image domain config needs
-          <img
+          <Image
             src={img}
             alt={p.name}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            loading="lazy"
+            fill
+            sizes="(min-width:1280px) 25vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+            className="object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-white/40">
@@ -31,12 +31,10 @@ export default function ProductCard({ p }: { p: ProductData }) {
         )}
       </div>
 
-      {/* Content */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-semibold leading-snug line-clamp-2">{p.name}</h3>
 
-          {/* Optional badges */}
           {p.badges?.length ? (
             <span className="shrink-0 text-[11px] rounded-md bg-white/10 px-2 py-1">
               {p.badges[0]}

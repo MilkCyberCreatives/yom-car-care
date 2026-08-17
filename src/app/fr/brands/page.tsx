@@ -23,7 +23,7 @@ export default function FRBrandsPage() {
 
       <section className="container-px pb-14 md:pb-16">
         <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-6 md:p-8">
-          <h2 className="text-xl md:text-2xl font-semibold">Besoin d'un conseil produit ?</h2>
+          <h2 className="text-xl md:text-2xl font-semibold">Besoin d&apos;un conseil produit ?</h2>
           <p className="mt-2 text-white/70">
             Contactez notre equipe pour choisir la bonne combinaison de produits.
           </p>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import LocaleLink from "@/app/components/LocaleLink";
 import { products, type ProductData } from "@/data/products";
 
@@ -6,7 +7,6 @@ export const dynamic = "force-static";
 type Params = { params: { category: string } };
 
 function thumbOf(p: ProductData): string {
-  // Defensive read so it compiles even if ProductData doesn't declare `img`
   const anyP = p as any;
   const img: string | undefined = anyP?.img;
   const firstFromImages: string | undefined =
@@ -70,11 +70,12 @@ export default function CategoryPageFR({ params }: Params) {
               >
                 <div className="relative w-full aspect-square">
                   {thumb ? (
-                    <img
+                    <Image
                       src={thumb}
                       alt={p.name}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      loading="lazy"
+                      fill
+                      sizes="(min-width:1280px) 25vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+                      className="object-cover transition duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <div className="grid h-full w-full place-items-center text-white/40 text-sm">

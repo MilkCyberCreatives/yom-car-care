@@ -80,7 +80,6 @@ type PriceMap = Record<string, PriceEntry>;
 
 function loadPriceMap(): PriceMap {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod = require("@/data/prices");
     const map = (mod.priceList || mod.default || {}) as PriceMap;
     return map && typeof map === "object" ? map : {};
