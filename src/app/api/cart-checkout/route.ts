@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { getProduct } from "@/lib/products";
 
 export const runtime = "nodejs";
 
@@ -10,16 +11,48 @@ type CheckoutItem = {
   qty: number;
   price?: number;
   currency?: string;
-  img?: string;
 };
 
 function sanitize(value: string) {
   return value.replace(/[\r\n\t]/g, " ").trim();
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function isEmail(value: string) {
   if (!value) return true;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function normalizeCheckoutItem(value: unknown): CheckoutItem | null {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as Record<string, unknown>;
+  const slug = sanitize(String(raw.slug ?? ""));
+  const categorySlug = sanitize(String(raw.categorySlug ?? ""));
+  const qty = Number(raw.qty ?? 0);
+
+  if (!slug || !categorySlug || !Number.isInteger(qty) || qty < 1 || qty > 100) {
+    return null;
+  }
+
+  const product = getProduct(categorySlug, slug);
+  if (!product) return null;
+
+  return {
+    slug: product.slug,
+    categorySlug,
+    name: product.name,
+    qty,
+    price: product.price,
+    currency: product.currency || "USD",
+  };
 }
 
 async function getTransporter() {
@@ -90,27 +123,28 @@ function renderHtmlOrder({
   cart: CheckoutItem[];
 }) {
   const rows = cart
-    .map(
-      (item) => `
+    .map((item) => {
+      const itemName = escapeHtml(item.name);
+      const itemPath = escapeHtml(`/products/${item.categorySlug}/${item.slug}`);
+      const itemPrice =
+        typeof item.price === "number"
+          ? escapeHtml(`${item.currency || "USD"} ${item.price.toLocaleString()}`)
+          : "-";
+
+      return `
       <tr>
         <td style="padding:6px 8px; border-bottom:1px solid #eee;">
-          <div><strong>${item.name}</strong></div>
-          <div style="font-size:12px;color:#666;">
-            /products/${item.categorySlug}/${item.slug}
-          </div>
+          <div><strong>${itemName}</strong></div>
+          <div style="font-size:12px;color:#666;">${itemPath}</div>
         </td>
         <td style="padding:6px 8px; border-bottom:1px solid #eee; text-align:center;">
           ${item.qty}
         </td>
         <td style="padding:6px 8px; border-bottom:1px solid #eee; text-align:right;">
-          ${
-            typeof item.price === "number"
-              ? `${item.currency || "USD"} ${item.price.toLocaleString()}`
-              : "-"
-          }
+          ${itemPrice}
         </td>
-      </tr>`
-    )
+      </tr>`;
+    })
     .join("");
 
   return `
@@ -121,19 +155,19 @@ function renderHtmlOrder({
     <table style="border-collapse:collapse;width:100%;max-width:600px;font-size:14px;">
       <tr>
         <td style="padding:6px 8px;background:#f6f6f6;width:140px;">Name</td>
-        <td style="padding:6px 8px;">${name}</td>
+        <td style="padding:6px 8px;">${escapeHtml(name)}</td>
       </tr>
       <tr>
         <td style="padding:6px 8px;background:#f6f6f6;">Phone</td>
-        <td style="padding:6px 8px;">${phone}</td>
+        <td style="padding:6px 8px;">${escapeHtml(phone)}</td>
       </tr>
       <tr>
         <td style="padding:6px 8px;background:#f6f6f6;">Email</td>
-        <td style="padding:6px 8px;">${email || "(not provided)"}</td>
+        <td style="padding:6px 8px;">${escapeHtml(email || "(not provided)")}</td>
       </tr>
       <tr>
         <td style="padding:6px 8px;background:#f6f6f6;">Notes</td>
-        <td style="padding:6px 8px;white-space:pre-wrap;">${notes || "(none)"}</td>
+        <td style="padding:6px 8px;white-space:pre-wrap;">${escapeHtml(notes || "(none)")}</td>
       </tr>
     </table>
 
@@ -146,9 +180,7 @@ function renderHtmlOrder({
           <th style="padding:6px 8px;text-align:right;">Price</th>
         </tr>
       </thead>
-      <tbody>
-        ${rows}
-      </tbody>
+      <tbody>${rows}</tbody>
     </table>
 
     <p style="font-size:12px;color:#777;margin-top:16px;">
@@ -178,16 +210,17 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const hp = sanitize(String(body.hp || ""));
+    const hp = sanitize(String(body.hp ?? ""));
     if (hp) {
       return NextResponse.json({ ok: true, message: "Thanks." });
     }
 
-    const name = sanitize(String(body.name || ""));
-    const phone = sanitize(String(body.phone || ""));
-    const email = sanitize(String(body.email || ""));
-    const notes = sanitize(String(body.notes || ""));
-    const inputCart = Array.isArray(body.cart) ? body.cart : [];
+    const name = sanitize(String(body.name ?? ""));
+    const phone = sanitize(String(body.phone ?? ""));
+    const email = sanitize(String(body.email ?? ""));
+    const notes = sanitize(String(body.notes ?? ""));
+    const inputCart: unknown[] = Array.isArray(body.cart) ? body.cart : [];
+
     if (inputCart.length > 100) {
       return NextResponse.json(
         { ok: false, error: "Cart is too large." },
@@ -195,20 +228,19 @@ export async function POST(req: Request) {
       );
     }
 
-    const cart: CheckoutItem[] = inputCart
-      .map((item: any) => ({
-        slug: sanitize(String(item.slug || "")),
-        categorySlug: sanitize(String(item.categorySlug || "")),
-        name: sanitize(String(item.name || "")),
-        qty: Number(item.qty || 0),
-        price: typeof item.price === "number" ? item.price : undefined,
-        currency: sanitize(String(item.currency || "USD")),
-        img: sanitize(String(item.img || "")),
-      }))
-      .filter(
-        (item: CheckoutItem) =>
-          item.slug && item.categorySlug && item.name && item.qty > 0
-      );
+    const cart: CheckoutItem[] = [];
+    for (const rawItem of inputCart) {
+      const item = normalizeCheckoutItem(rawItem);
+      if (!item) {
+        return NextResponse.json(
+          { ok: false, error: "Cart contains an invalid product or quantity." },
+          { status: 400 }
+        );
+      }
+      cart.push(item);
+    }
+
+    const totalUnits = cart.reduce((sum, item) => sum + item.qty, 0);
 
     if (!name || !phone || cart.length === 0) {
       return NextResponse.json(
@@ -224,9 +256,21 @@ export async function POST(req: Request) {
       );
     }
 
+    if (
+      name.length > 120 ||
+      phone.length > 60 ||
+      email.length > 254 ||
+      notes.length > 2000 ||
+      totalUnits > 250
+    ) {
+      return NextResponse.json(
+        { ok: false, error: "One or more order fields exceed the allowed limits." },
+        { status: 400 }
+      );
+    }
+
     const html = renderHtmlOrder({ name, phone, email, notes, cart });
     const transporter = await getTransporter();
-
     const { to: TO, from: FROM } = getMailDefaults();
 
     await transporter.sendMail({
@@ -263,10 +307,10 @@ export async function POST(req: Request) {
       ok: true,
       message: "Order request sent successfully.",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("cart-checkout error:", err);
     return NextResponse.json(
-      { ok: false, error: err?.message || "Failed to send cart to admin." },
+      { ok: false, error: "Failed to send order request. Please try again later." },
       { status: 500 }
     );
   }

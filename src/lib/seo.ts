@@ -49,9 +49,7 @@ export const BUSINESS = {
   },
   currency: ["USD", "CDF"],
   areaServed: ["Lubumbashi", "Haut-Katanga", "Democratic Republic of the Congo"],
-  sameAs: [
-    "https://wa.me/243848994045",
-  ],
+  sameAs: ["https://wa.me/243848994045"],
 } as const;
 
 export function toLocale(value?: string): AppLocale {
@@ -87,6 +85,7 @@ export function organizationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${SITE_URL}#organization`,
     name: BUSINESS.name,
     url: SITE_URL,
     logo: absoluteUrl("/logo.svg"),
@@ -123,31 +122,9 @@ export function localBusinessJsonLd() {
       latitude: BUSINESS.geo.latitude,
       longitude: BUSINESS.geo.longitude,
     },
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-        ],
-        opens: "09:00",
-        closes: "18:00",
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: "Saturday",
-        opens: "10:00",
-        closes: "16:00",
-      },
-    ],
     paymentAccepted: "Cash",
     areaServed: BUSINESS.areaServed,
     currenciesAccepted: BUSINESS.currency.join(", "),
-    availableLanguage: ["en", "fr"],
-    priceRange: "$$",
     keywords: ALL_SEO_KEYWORDS.join(", "),
   };
 }
@@ -159,6 +136,9 @@ export function websiteJsonLd() {
     "@id": `${SITE_URL}#website`,
     name: SITE_NAME,
     url: SITE_URL,
+    publisher: {
+      "@id": `${SITE_URL}#organization`,
+    },
     keywords: ALL_SEO_KEYWORDS.join(", "),
     inLanguage: ["en", "fr"],
     potentialAction: {
@@ -187,6 +167,9 @@ export function webPageJsonLd(params: {
     },
     about: {
       "@id": `${SITE_URL}#localbusiness`,
+    },
+    publisher: {
+      "@id": `${SITE_URL}#organization`,
     },
   };
 }
@@ -234,10 +217,6 @@ export function productJsonLd(params: {
     category: product.category,
     image: image.map((item) => absoluteUrl(item)),
     description: params.locale === "fr" ? descriptionFr : descriptionEn,
-    brand: {
-      "@type": "Brand",
-      name: "YOM Car Care",
-    },
     url: absoluteUrl(path),
     ...(price !== undefined
       ? {
@@ -245,8 +224,6 @@ export function productJsonLd(params: {
             "@type": "Offer",
             price,
             priceCurrency: currency,
-            availability: "https://schema.org/InStock",
-            itemCondition: "https://schema.org/NewCondition",
             url: absoluteUrl(path),
             seller: {
               "@id": `${SITE_URL}#localbusiness`,

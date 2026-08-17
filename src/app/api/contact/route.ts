@@ -4,23 +4,29 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 // Make sure this runs in the Node runtime (not edge) for SMTP.
 export const runtime = "nodejs";
 
-// ---- Helpers ----
-function sanitize(s: string) {
-  return s.replace(/[\r\n\t]/g, " ").trim();
+function sanitize(value: string) {
+  return value.replace(/[\r\n\t]/g, " ").trim();
 }
 
-function isEmail(s: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-// Build a nodemailer transporter from environment variables.
-// Supports either a single SMTP_URL or discrete host/port/user/pass.
+function isEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 async function getTransporter() {
   const { createTransport } = await import("nodemailer");
 
   const {
     SMTP_URL,
-    EMAIL_SERVER_URL, // alias
+    EMAIL_SERVER_URL,
     SMTP_HOST,
     SMTP_PORT,
     SMTP_SECURE,
@@ -87,22 +93,27 @@ function renderHtml({
   subject: string;
   message: string;
 }) {
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safePhone = escapeHtml(phone || "");
+  const safeSubject = escapeHtml(subject);
+  const safeMessage = escapeHtml(message);
+
   return `
   <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height:1.5;">
     <h2 style="margin:0 0 12px;">New contact form submission</h2>
     <table style="border-collapse: collapse; width:100%; max-width:600px;">
-      <tr><td style="padding:6px 8px; background:#f6f6f6; width:140px;">Name</td><td style="padding:6px 8px;">${name}</td></tr>
-      <tr><td style="padding:6px 8px; background:#f6f6f6;">Email</td><td style="padding:6px 8px;">${email}</td></tr>
-      ${phone ? `<tr><td style="padding:6px 8px; background:#f6f6f6;">Phone</td><td style="padding:6px 8px;">${phone}</td></tr>` : ""}
-      <tr><td style="padding:6px 8px; background:#f6f6f6;">Subject</td><td style="padding:6px 8px;">${subject}</td></tr>
+      <tr><td style="padding:6px 8px; background:#f6f6f6; width:140px;">Name</td><td style="padding:6px 8px;">${safeName}</td></tr>
+      <tr><td style="padding:6px 8px; background:#f6f6f6;">Email</td><td style="padding:6px 8px;">${safeEmail}</td></tr>
+      ${safePhone ? `<tr><td style="padding:6px 8px; background:#f6f6f6;">Phone</td><td style="padding:6px 8px;">${safePhone}</td></tr>` : ""}
+      <tr><td style="padding:6px 8px; background:#f6f6f6;">Subject</td><td style="padding:6px 8px;">${safeSubject}</td></tr>
     </table>
     <div style="margin-top:16px; padding:12px; background:#fafafa; border:1px solid #eee; white-space:pre-wrap;">
-      ${message}
+      ${safeMessage}
     </div>
   </div>`;
 }
 
-// ---- Route handler ----
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
@@ -126,7 +137,6 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const hp = sanitize(String(body.hp ?? ""));
     if (hp) {
-      // Honeypot field should stay empty for real users.
       return NextResponse.json({ ok: true, message: "Thanks." });
     }
 
@@ -145,16 +155,20 @@ export async function POST(req: Request) {
     if (!isEmail(email)) {
       return NextResponse.json({ ok: false, error: "Invalid email address." }, { status: 400 });
     }
-    if (message.length > 5000 || subject.length > 200) {
+    if (
+      name.length > 120 ||
+      email.length > 254 ||
+      phone.length > 60 ||
+      subject.length > 200 ||
+      message.length > 5000
+    ) {
       return NextResponse.json(
-        { ok: false, error: "Message is too long." },
+        { ok: false, error: "One or more fields are too long." },
         { status: 400 }
       );
     }
 
-    // Configure recipient + sender
     const { to: TO, from: FROM } = getMailDefaults();
-
     const transporter = await getTransporter();
 
     await transporter.sendMail({
@@ -166,7 +180,6 @@ export async function POST(req: Request) {
       html: renderHtml({ name, email, phone, subject, message }),
     });
 
-    // Auto-acknowledgement to sender
     try {
       await transporter.sendMail({
         from: FROM,
@@ -202,10 +215,10 @@ export async function POST(req: Request) {
       message:
         "Your message was received. Our agent consultant will attend to it as soon as possible. / Votre message a bien ete recu. Notre agent consultant s en occupera des que possible.",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Contact API error:", err);
     return NextResponse.json(
-      { ok: false, error: err?.message || "Failed to send message." },
+      { ok: false, error: "Failed to send message. Please try again later." },
       { status: 500 }
     );
   }
