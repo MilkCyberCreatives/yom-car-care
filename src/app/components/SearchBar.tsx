@@ -15,12 +15,9 @@ import { usePathname, useRouter } from "next/navigation";
 import useLocaleLink from "@/hooks/useLocaleLink";
 import { useI18n } from "@/hooks/useI18n";
 
-/** tiny class combiner */
 function cx(...v: Array<string | false | null | undefined>) {
   return v.filter(Boolean).join(" ");
 }
-
-/* ---------- types ---------- */
 
 type Props = { className?: string };
 
@@ -30,10 +27,8 @@ type Product = {
   name?: string;
   price?: number | string;
   currency?: string;
-  // images could be `image` or `img`
   image?: string;
   img?: string;
-  // category could be label or slug
   category?: string;
   categorySlug?: string;
 };
@@ -41,8 +36,6 @@ type Product = {
 import * as Featured from "@/data/featured";
 import * as MostPurchased from "@/data/mostPurchased";
 import * as AllProducts from "@/data/products";
-
-/* ---------- helpers ---------- */
 
 function flattenModule(mod: Record<string, unknown>): Product[] {
   const out: Product[] = [];
@@ -86,7 +79,6 @@ function normalizeProduct(p: Product) {
     "accessories";
 
   const image = resolveImg(p.image ?? p.img, category);
-
   const priceRaw = p.price;
   const price = typeof priceRaw === "string" ? Number(priceRaw) || undefined : priceRaw;
 
@@ -110,7 +102,6 @@ export default function SearchBar({ className }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
-  /* Build product pool ONCE */
   const products = useMemo(() => {
     const pools = [
       ...flattenModule(Featured),
@@ -129,7 +120,6 @@ export default function SearchBar({ className }: Props) {
     return list;
   }, []);
 
-  /* Load recent searches once */
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -137,13 +127,11 @@ export default function SearchBar({ className }: Props) {
     } catch {}
   }, []);
 
-  /* Close on route change */
   useEffect(() => {
     setOpen(false);
     setActive(0);
   }, [pathname]);
 
-  /* Click outside to close */
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (!boxRef.current) return;
@@ -153,13 +141,11 @@ export default function SearchBar({ className }: Props) {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  /* Debounce input */
   useEffect(() => {
     const id = setTimeout(() => setDebouncedQ(q.trim()), DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [q]);
 
-  /* Results */
   const results = useMemo(() => {
     const query = debouncedQ.toLowerCase();
     if (!query) return [];
@@ -169,7 +155,6 @@ export default function SearchBar({ className }: Props) {
         const hay = `${p.title} ${p.category}`.toLowerCase();
         const starts = p.title.toLowerCase().startsWith(query);
         const includes = hay.includes(query);
-
         const score = (starts ? 5 : 0) + (includes ? 2 : 0) + (p.category.startsWith(query) ? 1 : 0);
         return { p, score };
       })
@@ -180,38 +165,6 @@ export default function SearchBar({ className }: Props) {
   }, [debouncedQ, products]);
 
   const showRecents = !debouncedQ && recents.length > 0;
-
-  /* Keyboard nav */
-  useEffect(() => {
-    if (!open) return;
-
-    function onKey(e: KeyboardEvent) {
-      const poolLen = (results.length || 0) + (showRecents ? recents.length : 0);
-
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setActive((i) => (i + 1) % Math.max(1, poolLen));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setActive((i) => (i - 1 + Math.max(1, poolLen)) % Math.max(1, poolLen));
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        if (!poolLen) return;
-
-        if (showRecents && active < recents.length) {
-          go(recents[active]);
-        } else {
-          const p = results[active - (showRecents ? recents.length : 0)];
-          if (p) goToProduct(p.category, p.slug);
-        }
-      } else if (e.key === "Escape") {
-        setOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, active, results, recents, showRecents]);
 
   const saveRecent = useCallback(
     (term: string) => {
@@ -247,6 +200,37 @@ export default function SearchBar({ className }: Props) {
     },
     [router, l]
   );
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onKey(e: KeyboardEvent) {
+      const poolLen = (results.length || 0) + (showRecents ? recents.length : 0);
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActive((i) => (i + 1) % Math.max(1, poolLen));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActive((i) => (i - 1 + Math.max(1, poolLen)) % Math.max(1, poolLen));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (!poolLen) return;
+
+        if (showRecents && active < recents.length) {
+          go(recents[active]);
+        } else {
+          const p = results[active - (showRecents ? recents.length : 0)];
+          if (p) goToProduct(p.category, p.slug);
+        }
+      } else if (e.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, active, results, recents, showRecents, go, goToProduct]);
 
   const copy = useMemo(
     () => ({
@@ -313,7 +297,6 @@ export default function SearchBar({ className }: Props) {
 
       {open && (showRecents || results.length > 0) && (
         <div className="absolute left-0 right-0 mt-2 rounded-xl border bg-white shadow-2xl overflow-hidden z-50">
-          {/* Recents */}
           {showRecents && (
             <div className="p-2">
               <div className="flex items-center justify-between px-2 pb-1">
@@ -352,7 +335,6 @@ export default function SearchBar({ className }: Props) {
             </div>
           )}
 
-          {/* Results */}
           {results.length > 0 && (
             <ul className="max-h-[60vh] overflow-auto p-2">
               {results.map((p, i) => {
@@ -401,7 +383,3 @@ export default function SearchBar({ className }: Props) {
     </div>
   );
 }
-
-
-
-

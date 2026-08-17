@@ -9,7 +9,6 @@ import { mostPurchasedHome, type MPItem as MPItemIn } from "@/data/mostPurchased
 import AddToCartButton from "@/app/components/AddToCartButton";
 import { useI18n } from "@/hooks/useI18n";
 
-/** Relaxed output type so category can be any slug string */
 type MPItem = {
   slug: string;
   name: string;
@@ -20,8 +19,6 @@ type MPItem = {
   href?: string;
   badge?: string | React.ReactNode;
 };
-
-/* ------------- helpers ------------- */
 
 const catSlug = (c?: string) =>
   (c || "")
@@ -65,31 +62,23 @@ function resolveImg(img: string | undefined, category: string | undefined) {
 
 function normalize(item: MPItemIn | any): MPItem {
   const any = item as any;
-
   const name: string = any?.name ?? any?.title ?? "Product";
   const roughSlug: string =
     any?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
   const rawCat: string =
     any?.category ??
     (any?.categorySlug ? String(any.categorySlug).split("/").filter(Boolean).pop() : undefined) ??
     "accessories";
-
   const category = catSlug(rawCat) || "accessories";
-
   const img = resolveImg(any?.img ?? any?.image, category);
-
   const priceRaw = any?.price;
   const price: number = typeof priceRaw === "string" ? Number(priceRaw) || 0 : priceRaw ?? 0;
   const currency: MPItem["currency"] = any?.currency ?? "USD";
-
   const slug = roughSlug;
   const href: string | undefined = any?.href ?? `/products/${category}/${slug}`;
 
   return { slug, name, img, price, currency, category, href, badge: any?.badge };
 }
-
-/* ---------------- lightweight scroll-reveal (no framer, fast) ---------------- */
 
 function useInViewOnce<T extends HTMLElement>(threshold = 0.15) {
   const ref = useRef<T | null>(null);
@@ -126,8 +115,6 @@ function useInViewOnce<T extends HTMLElement>(threshold = 0.15) {
   return { ref, inView };
 }
 
-/* ---------------- component ---------------- */
-
 export default function MostPurchased({
   heading,
   products,
@@ -151,9 +138,10 @@ export default function MostPurchased({
     };
   }, [heading, isFR]);
 
-  const rawList: any[] = (Array.isArray(products) ? (products as any[]) : mostPurchasedHome) ?? [];
-
-  const list: MPItem[] = useMemo(() => rawList.map(normalize), [rawList]);
+  const list: MPItem[] = useMemo(() => {
+    const rawList: any[] = Array.isArray(products) ? (products as any[]) : mostPurchasedHome;
+    return (rawList ?? []).map(normalize);
+  }, [products]);
 
   const { ref: sectionRef, inView } = useInViewOnce<HTMLDivElement>(0.12);
 

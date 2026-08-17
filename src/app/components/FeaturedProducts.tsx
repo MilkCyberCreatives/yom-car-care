@@ -18,7 +18,7 @@ type LegacyItem = {
   img?: string;
   price?: number | string;
   currency?: "USD" | "CDF" | string;
-  category?: string; // "Exterior" | "exterior" | "/products/exterior"
+  category?: string;
   categorySlug?: string;
   href?: string;
   badge?: string | React.ReactNode;
@@ -26,19 +26,16 @@ type LegacyItem = {
 
 type AnyItem = FPItemIn | LegacyItem;
 
-/** Output we render with (category is string so we allow air-fresheners etc.) */
 type FPItem = {
   slug: string;
   name: string;
   img: string;
   price: number;
   currency: "USD" | "CDF" | string;
-  category: string; // slug form like "exterior"
+  category: string;
   href?: string;
   badge?: string | React.ReactNode;
 };
-
-/* ---------------- helpers ---------------- */
 
 const catSlug = (c?: string) =>
   (c || "")
@@ -73,7 +70,6 @@ function formatPrice(n: number, currency = "USD") {
   return (currency === "CDF" ? "CDF " : "$") + (Number.isFinite(n) ? n.toLocaleString() : "0");
 }
 
-/** Build absolute product image path. */
 function resolveImg(img: string | undefined, category: string | undefined) {
   if (!img) return "";
   if (img.startsWith("/")) return img;
@@ -81,44 +77,26 @@ function resolveImg(img: string | undefined, category: string | undefined) {
   return cat ? `/products/${cat}/${img}` : `/products/${img}`;
 }
 
-/** Normalize any incoming shape to FPItem */
 function normalize(item: AnyItem): FPItem {
   const any = item as any;
-
   const name: string = any?.name ?? any?.title ?? "Product";
   const roughSlug: string =
     any?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
   const rawCat: string =
     any?.category ??
     (any?.categorySlug ? String(any.categorySlug).split("/").filter(Boolean).pop() : undefined) ??
     "accessories";
-
   const category = catSlug(rawCat) || "accessories";
-
   const imgRaw: string | undefined = any?.img ?? any?.image ?? "";
   const img = resolveImg(imgRaw, category);
-
   const priceRaw = any?.price;
   const price: number = typeof priceRaw === "string" ? Number(priceRaw) || 0 : priceRaw ?? 0;
   const currency: FPItem["currency"] = any?.currency ?? "USD";
-
   const slug = roughSlug;
   const href: string | undefined = any?.href ?? `/products/${category}/${slug}`;
 
-  return {
-    slug,
-    name,
-    img,
-    price,
-    currency,
-    category,
-    href,
-    badge: any?.badge,
-  };
+  return { slug, name, img, price, currency, category, href, badge: any?.badge };
 }
-
-/* ---------------- lightweight scroll-reveal (no framer, fast) ---------------- */
 
 function useInViewOnce<T extends HTMLElement>(threshold = 0.15) {
   const ref = useRef<T | null>(null);
@@ -155,8 +133,6 @@ function useInViewOnce<T extends HTMLElement>(threshold = 0.15) {
   return { ref, inView };
 }
 
-/* ---------------- component ---------------- */
-
 export default function FeaturedProducts({
   heading,
   products,
@@ -180,9 +156,10 @@ export default function FeaturedProducts({
     };
   }, [heading, isFR]);
 
-  const rawList: AnyItem[] = (Array.isArray(products) ? (products as AnyItem[]) : featuredHome) ?? [];
-
-  const list: FPItem[] = useMemo(() => rawList.map(normalize), [rawList]);
+  const list: FPItem[] = useMemo(() => {
+    const rawList: AnyItem[] = Array.isArray(products) ? (products as AnyItem[]) : featuredHome;
+    return (rawList ?? []).map(normalize);
+  }, [products]);
 
   const { ref: sectionRef, inView } = useInViewOnce<HTMLDivElement>(0.12);
 

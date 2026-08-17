@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import LocaleLink from "@/app/components/LocaleLink";
 import { useEnquiry } from "@/components/enquiry/EnquiryProvider";
 import { useI18n } from "@/hooks/useI18n";
@@ -92,7 +93,13 @@ export default function EnquiryPage() {
                 >
                   <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-zinc-900/40 shrink-0">
                     {i.__thumb ? (
-                      <img src={i.__thumb} alt={i.name} className="h-full w-full object-cover" loading="lazy" />
+                      <Image
+                        src={i.__thumb}
+                        alt={i.name}
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                      />
                     ) : (
                       <div className="grid h-full w-full place-items-center text-white/40 text-xs">
                         {copy.noImage}
