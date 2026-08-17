@@ -1,10 +1,35 @@
 import dynamic from "next/dynamic";
+import type { Metadata } from "next";
+
+import { localeAlternates, toLocale } from "@/lib/seo";
 
 const CompareTable = dynamic(() => import("@/components/compare/CompareTable"), {
   ssr: false,
 });
 
-export default function LocaleComparePage({ params }: { params: { locale?: string } }) {
+type PageProps = { params: { locale: string } };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const locale = toLocale(params.locale);
+  const isFR = locale === "fr";
+
+  return {
+    title: isFR ? "Comparer les produits" : "Compare Products",
+    description: isFR
+      ? "Comparez les produits YOM Car Care que vous avez selectionnes."
+      : "Compare the YOM Car Care products you have selected.",
+    alternates: {
+      canonical: `/${locale}/compare`,
+      languages: localeAlternates("/compare"),
+    },
+    robots: {
+      index: false,
+      follow: true,
+    },
+  };
+}
+
+export default function LocaleComparePage({ params }: PageProps) {
   const isFR = params?.locale === "fr";
 
   return (

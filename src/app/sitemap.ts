@@ -3,20 +3,19 @@ import type { MetadataRoute } from "next";
 import { getAllProducts, catSlug } from "@/lib/products";
 import { absoluteUrl } from "@/lib/seo";
 
-const NOW = new Date();
 const LOCALES: Array<"en" | "fr"> = ["en", "fr"];
 
 const STATIC_ROUTES = [
   "/",
   "/about",
   "/products",
+  "/brands",
   "/contact",
   "/faq",
   "/legal-area",
   "/privacy-policy",
   "/cookie-policy",
   "/terms",
-  "/compare",
   "/enquiry",
 ] as const;
 
@@ -42,7 +41,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
     STATIC_ROUTES.map((path) => ({
       url: absoluteUrl(localizedPath(locale, path)),
-      lastModified: NOW,
       changeFrequency: path === "/" ? "daily" : "weekly",
       priority: path === "/" ? 1 : 0.7,
       alternates: alternatesFor(path),
@@ -54,7 +52,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       const path = `/products/${category}`;
       return {
         url: absoluteUrl(localizedPath(locale, path)),
-        lastModified: NOW,
         changeFrequency: "weekly",
         priority: 0.75,
         alternates: alternatesFor(path),
@@ -67,7 +64,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       const path = `/products/${catSlug(product.category)}/${product.slug}`;
       return {
         url: absoluteUrl(localizedPath(locale, path)),
-        lastModified: NOW,
         changeFrequency: "weekly",
         priority: 0.8,
         alternates: alternatesFor(path),
